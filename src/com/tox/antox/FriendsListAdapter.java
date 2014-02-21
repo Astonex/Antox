@@ -19,7 +19,11 @@ public class FriendsListAdapter extends ArrayAdapter<FriendsList> implements Fil
 	Context context;
 	int layoutResourceId;
 	List<FriendsList> data = null;
-	
+
+	private final Object lock = new Object();
+	private ArrayList<FriendsList> originalData;
+	private FriendsFilter filter;
+
 	public FriendsListAdapter(Context context, int layoutResourceId, FriendsList[] data)
 	{
 		super(context, layoutResourceId, data);
@@ -86,10 +90,6 @@ public class FriendsListAdapter extends ArrayAdapter<FriendsList> implements Fil
 		TextView friendName;
 		TextView friendStatus;
 	}
-
-	private final Object lock = new Object();
-	private ArrayList<FriendsList> originalData;
-	private FriendsFilter filter;
 
 	@Override
 	public Filter getFilter() {
@@ -171,6 +171,5 @@ public class FriendsListAdapter extends ArrayAdapter<FriendsList> implements Fil
 			data = (List<FriendsList>) results.values;
 			notifyDataSetChanged();
 		}
-
 	}
 }
