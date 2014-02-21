@@ -12,13 +12,16 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.SearchView;
 
 public class MainActivity extends Activity {
 
 	public final static String EXTRA_MESSAGE = "com.tox.antox.MESSAGE";
 	
 	private ListView friendListView;
-	
+
+	private FriendsListAdapter adapter;
+
 	@SuppressLint("NewApi")
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,12 +75,14 @@ public class MainActivity extends Activity {
         }
 
         
-        FriendsListAdapter adapter = new FriendsListAdapter(this,
+        adapter = new FriendsListAdapter(this,
         		R.layout.main_list_item, friends_list);
 
         friendListView = (ListView) findViewById(R.id.mainListView);
         
         friendListView.setAdapter(adapter);
+        
+        friendListView.setTextFilterEnabled(true);
 
         final Intent chatIntent = new Intent(this, ChatActivity.class);
  
@@ -136,10 +141,41 @@ public class MainActivity extends Activity {
     	}
     }
     
-    @Override
+    @SuppressLint("NewApi")
+	@Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+			final MenuItem menuItem = menu.findItem(R.id.search_friend);
+			final SearchView searchView = (SearchView) menuItem.getActionView();
+			searchView
+					.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+
+						@Override
+						public boolean onQueryTextSubmit(String query) {
+							// do nothing
+							return false;
+						}
+
+						@Override
+						public boolean onQueryTextChange(String newText) {
+							MainActivity.this.adapter.getFilter().filter(
+									newText);
+							return true;
+						}
+					});
+			searchView
+					.setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
+
+						@Override
+						public void onFocusChange(View v, boolean hasFocus) {
+							menuItem.collapseActionView();
+						}
+					});
+		}
+
         return true;
     }
 }
