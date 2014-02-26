@@ -2,10 +2,10 @@
 <merger>
 
     <dataSet config="main" >
-        <source path="/home/soft/workspace-studio/app/src/main/assets" />
+        <source path="/home/star/Antox/app/src/main/assets" />
     </dataSet>
     <dataSet config="debug" >
-        <source path="/home/soft/workspace-studio/app/src/debug/assets" />
+        <source path="/home/star/Antox/app/src/debug/assets" />
     </dataSet>
 
 </merger>

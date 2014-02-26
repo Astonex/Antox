@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- From: file:/home/soft/workspace-studio/app/src/main/res/values/dimens.xml -->
+    <!-- From: file:/home/star/Antox/app/src/main/res/values/dimens.xml -->
     <eat-comment />
 
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
-    <!-- From: file:/home/soft/workspace-studio/app/src/main/res/values/strings.xml -->
+    <!-- From: file:/home/star/Antox/app/src/main/res/values/strings.xml -->
     <eat-comment />
 
     <string name="about_string">This client is still in pre-alpha.</string>
@@ -48,7 +48,7 @@
     <string name="title_activity_settings">Settings</string>
     <string name="title_activity_welcome">Welcome</string>
     <string name="welcome_string">Welcome to Antox</string>
-    <!-- From: file:/home/soft/workspace-studio/app/src/main/res/values/styles.xml -->
+    <!-- From: file:/home/star/Antox/app/src/main/res/values/styles.xml -->
     <eat-comment />
 
     <style name="AppBaseTheme" parent="android:Theme.Light">
