@@ -31,6 +31,7 @@ import java.net.URL;
 
 import im.tox.jtoxcore.JTox;
 import im.tox.jtoxcore.ToxException;
+import im.tox.jtoxcore.ToxUserStatus;
 import im.tox.jtoxcore.callbacks.CallbackHandler;
 
 /**
@@ -60,6 +61,8 @@ public class MainActivity extends ActionBarActivity {
      */
     private ResponseReceiver receiver;
 
+    private Intent doToxIntent;
+
     @SuppressLint("NewApi")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,7 +79,7 @@ public class MainActivity extends ActionBarActivity {
             // TODO: Decide on a whole what to do if the user isnt connected to the Internet
         }
 
-        Intent doToxIntent = new Intent(this, ToxService.class);
+        doToxIntent = new Intent(this, ToxService.class);
         doToxIntent.setAction(Constants.DO_TOX);
         this.startService(doToxIntent);
 
@@ -116,7 +119,15 @@ public class MainActivity extends ActionBarActivity {
         /* Load user details */
         SharedPreferences settingsPref = getSharedPreferences("settings", Context.MODE_PRIVATE);
         UserDetails.username = settingsPref.getString("saved_name_hint", "");
-        UserDetails.status = settingsPref.getString("saved_status_hint", "");
+        if (settingsPref.getString("saved_status_hint", "") == "online")
+            UserDetails.status = ToxUserStatus.TOX_USERSTATUS_NONE;
+        else if (settingsPref.getString("saved_status_hint", "") == "away")
+            UserDetails.status = ToxUserStatus.TOX_USERSTATUS_AWAY;
+        else if (settingsPref.getString("saved_status_hint", "") == "busy")
+            UserDetails.status = ToxUserStatus.TOX_USERSTATUS_BUSY;
+        else
+            UserDetails.status = ToxUserStatus.TOX_USERSTATUS_NONE;
+
         UserDetails.note = settingsPref.getString("saved_note_hint", "");
 
         /**
@@ -192,6 +203,19 @@ public class MainActivity extends ActionBarActivity {
     private void addFriend() {
         Intent intent = new Intent(this, AddFriendActivity.class);
         startActivity(intent);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        this.startService(doToxIntent);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        this.stopService(doToxIntent);
+        setTitle("antox");
     }
 
     @Override
