@@ -25,6 +25,8 @@ import im.tox.QR.IntentResult;
 
 public class AddFriendActivity extends ActionBarActivity {
 
+    EditText friendID;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,7 +42,7 @@ public class AddFriendActivity extends ActionBarActivity {
             }
         });
 
-        EditText friendID = (EditText) findViewById(R.id.addfriend_key);
+        friendID = (EditText) findViewById(R.id.addfriend_key);
         Intent intentURI = getIntent();
         Uri uri;
         if (Intent.ACTION_VIEW.equals(intentURI.getAction())
@@ -63,9 +65,13 @@ public class AddFriendActivity extends ActionBarActivity {
         Context context = getApplicationContext();
         CharSequence text = "Friend Added";
         int duration = Toast.LENGTH_SHORT;
+        if(friendID.getText().length() == 0)
+        {
+            Toast.makeText(context, "Enter Friend Public Key", duration).show();
+            return;
+        }
         Toast toast = Toast.makeText(context, text, duration);
         toast.show();
-
         /* Send intent to ToxService */
         EditText friendID = (EditText) findViewById(R.id.addfriend_key);
         EditText friendMessage = (EditText) findViewById(R.id.addfriend_message);
