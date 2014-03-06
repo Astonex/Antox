@@ -62,13 +62,13 @@
 
 
     <!-- Friend request fragment -->
-    <string name="friendrequest_accept">Akzeptiert</string>
-    <string name="friendrequest_reject">Abgelehnt</string>
+    <string name="friendrequest_accept">akzeptiert</string>
+    <string name="friendrequest_reject">abgelehnt</string>
 
     <!-- Contacts Fragment -->
     <string name="friend_action_sendfile">Datei senden</string>
-    <string name="friend_action_delete">Loeschen</string>
-    <string name="friend_action_block">Blockieren</string>
+    <string name="friend_action_delete">loeschen</string>
+    <string name="friend_action_block">blockieren</string>
     <string name="group_action_leave">Gruppe verlassen</string>
     <!--  Misc -->
 
