@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Antox</string>
+
+    <!-- Activity titles -->
+    <string name="title_activity_welcome">Willkommen</string>
+    <string name="title_activity_add_friend">Freund hinzufuegen</string>
+    <string name="title_activity_settings">Einstellungen</string>
+    <string name="title_activity_profile">Profil</string>
+
+    <!-- Navigation / Action Bar -->
+    <string name="action_settings">Einstellungen</string>
+    <string name="action_exit">Exit</string>
+    <string name="add_friend">Freund hinzufuegen</string>
+    <string name="search_friend">Suche</string>
+    <string name="action_profile">Profil</string>
+
+    <!-- Main Activity -->
+    <string name="icon_description">Verbindungs Status</string>
+    <string name="main_no_friends">Du hast keine Freunde!</string>
+    <string name="main_try_adding">Waurm fuegst du nicht welche hinzu?</string>
+    <string name="main_friend_requests">Freundschafts Nachfragen</string>
+    <string name="main_friends">Freunde</string>
+
+
+    <!--  Chat Activity -->
+    <string name="chat_enter_message">Nachricht senden</string>
+
+
+    <!-- Welcome Activity -->
+    <string name="about_string">Dieser Client ist eine Pre-Alpha Version!</string>
+    <string name="getstarted_string">Gib deinen Benutzernamen ein.</string>
+    <string name="developer_string">Entwickelt von astonex\nirc.freenode.net#tox-dev</string>
+
+    <!-- Settings Activity -->
+    <string name="settings_user_key_title">Dein Benutzerschlüssel</string>
+    <string name="settings_name_hint">gib deinen Namen ein</string>
+    <string name="settings_note_hint">gib deine persönliche Nachricht ein</string>
+    <string name="settings_dht_ip">IP Addresse von bootstrap (ex: 192.254.75.98)</string>
+    <string name="settings_dht_port">Port Addresse von bootstrap (ex: 33445)</string>
+    <string name="settings_dht_key">Öffentlicher Schlüssel von bootstrap (ex: FE3914F4616E227F29B2103450D6B55A836AD4BD23F97144E2C4ABE8D504FE1B)</string>
+    <string name="settings_button">Update</string>
+    <string name="settings_updated">Einstellungen wurden gespeichert</string>
+    <string name="settings_dht_spinner_title">Erweiterten Einstellungen</string>
+    <string name="settings_status_title">ändere Status</string>
+    <string name="settings_note_title">gib deine persönliche Nachricht ein</string>
+    <string name="settings_username_title">gib deinen Benutzernamen ein</string>
+
+    <!-- Add Friend Activity -->
+    <string name="addfriend_friend_key">öffentlichen Schlüssel vom Freund eintragen</string>
+    <string name="addfriend_friend_message">Optionale Nachricht für den Freund eintragen</string>
+    <string name="addfriend_button">Freund hinzufuegen</string>
+    <string name="scanqr_button">QR-Code einscannen</string>
+    <string name="invalid_friend_ID">Ungültige ID des Freundes</string>
+
+    <!--  Profile Activity -->
+    <string name="share_with">teilen mit</string>
+    <string name="status_online">Online</string>
+    <string name="status_away">Abwesend</string>
+    <string name="status_busy">Beschäftigt</string>
+
+
+    <!-- Friend request fragment -->
+    <string name="friendrequest_accept">akzeptiert</string>
+    <string name="friendrequest_reject">abgelehnt</string>
+
+    <!-- Contacts Fragment -->
+    <string name="friend_action_sendfile">Datei senden</string>
+    <string name="friend_action_delete">loeschen</string>
+    <string name="friend_action_block">blockieren</string>
+    <string name="group_action_leave">Gruppe verlassen</string>
+    <!--  Misc -->
+
+</resources>
