@@ -1,29 +1,26 @@
 package im.tox.antox;
 
 import android.annotation.SuppressLint;
-import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.widget.SlidingPaneLayout;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.MenuItemCompat;
+import android.support.v4.widget.SlidingPaneLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.TextView;
 import android.widget.Toast;
-
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,13 +29,8 @@ import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import im.tox.jtoxcore.ToxUserStatus;
-import im.tox.antox.LeftPaneItem;
 
 /**
  * The Main Activity which is launched when the app icon is pressed in the app tray and acts as the
@@ -139,6 +131,7 @@ public class MainActivity extends ActionBarActivity {
 
         }
 
+
         Intent getFriendsList = new Intent(this, ToxService.class);
         getFriendsList.setAction(Constants.FRIEND_LIST);
         this.startService(getFriendsList);
@@ -201,21 +194,23 @@ public class MainActivity extends ActionBarActivity {
         /* Go through status strings and set appropriate resource image */
         Friend friends_list[] = new Friend[friends.length];
 
-        for (int i = 0; i < friends.length; i++) {
-            if (friends[i][0].equals("1"))
-                friends_list[i] = new Friend(R.drawable.ic_status_online,
-                        friends[i][1], friends[i][2]);
-            else if (friends[i][0].equals("0"))
-                friends_list[i] = new Friend(R.drawable.ic_status_offline,
-                        friends[i][1], friends[i][2]);
-            else if (friends[i][0].equals("2"))
-                friends_list[i] = new Friend(R.drawable.ic_status_away,
-                        friends[i][1], friends[i][2]);
-            else if (friends[i][0].equals("3"))
-                friends_list[i] = new Friend(R.drawable.ic_status_busy,
-                        friends[i][1], friends[i][2]);
-        }
 
+        if(friends.length > 1){
+            for (int i = 0; i < friends.length; i++) {
+               if (friends[i][0].equals("0"))
+                      friends_list[i] = new Friend(R.drawable.ic_status_offline,
+                              friends[i][1], friends[i][2]);
+                else if (friends[i][0].equals("1"))
+                      friends_list[i] = new Friend(R.drawable.ic_status_online,
+                             friends[i][1], friends[i][2]);
+                else if (friends[i][0].equals("2"))
+                       friends_list[i] = new Friend(R.drawable.ic_status_away,
+                             friends[i][1], friends[i][2]);
+                else if (friends[i][0].equals("3"))
+                       friends_list[i] = new Friend(R.drawable.ic_status_busy,
+                             friends[i][1], friends[i][2]);
+             }
+        }
         FriendRequest friend_requests_list[] = new FriendRequest[toxSingleton.friend_requests.size()];
         friend_requests_list = toxSingleton.friend_requests.toArray(friend_requests_list);
 
