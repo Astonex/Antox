@@ -1,7 +1,6 @@
 package im.tox.antox;
 
-import android.annotation.SuppressLint;
-import android.app.ActivityManager;
+
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -141,7 +140,7 @@ public class MainActivity extends ActionBarActivity {
             // Executes in a separate thread so UI experience isn't affected
            // Downloads the DHT node details
             new DHTNodeDetails().execute();
-            new checkConnection().execute();
+            new checkConnection().execute(); //background tasks which runs until a node is connected
         } else {
 
         }
@@ -381,6 +380,10 @@ public class MainActivity extends ActionBarActivity {
         this.startService(startToxIntent);
     }
 
+    /**
+     * Runs until the node is connected, if it fails to connect
+     * the new node details are downloaded and tox service is restarted
+     */
     private class checkConnection extends  AsyncTask<Void, Void, Void>
     {
         ArrayList<String> nodeDown = new ArrayList<String>();
