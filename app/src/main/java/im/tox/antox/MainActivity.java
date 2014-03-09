@@ -76,6 +76,8 @@ public class MainActivity extends ActionBarActivity {
 
     ToxSingleton toxSingleton = ToxSingleton.getInstance();
 
+    public ArrayList<Friend> friendList;
+
     /*
      * Allows menu to be accessed from menu unrelated subroutines such as the pane opened
      */
@@ -192,7 +194,6 @@ public class MainActivity extends ActionBarActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(false);
         contacts = (ContactsFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_contacts);
 
-        //toxSingleton.friend_requests = new ArrayList<FriendRequest>();
         updateLeftPane();
     }
 
@@ -212,7 +213,7 @@ public class MainActivity extends ActionBarActivity {
 
         AntoxDB antoxDB = new AntoxDB(this);
 
-        ArrayList<Friend> friendList = antoxDB.getFriendList();
+        friendList = antoxDB.getFriendList();
 
         /* Go through status strings and set appropriate resource image */
         Friend friends_list[] = new Friend[friendList.size()];
@@ -235,7 +236,7 @@ public class MainActivity extends ActionBarActivity {
             LeftPaneItem friends_header = new LeftPaneItem(Constants.TYPE_HEADER, getResources().getString(R.string.main_friends), null, 0);
             leftPaneAdapter.addItem(friends_header);
             for (int i = 0; i < friends_list.length; i++) {
-                LeftPaneItem friend = new LeftPaneItem(Constants.TYPE_CONTACT, friends_list[i].friendName, friends_list[i].friendStatus, friends_list[i].icon);
+                LeftPaneItem friend = new LeftPaneItem(Constants.TYPE_CONTACT, friends_list[i].friendName, friends_list[i].personalNote, friends_list[i].icon);
                 leftPaneAdapter.addItem(friend);
             }
         }
