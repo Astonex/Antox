@@ -1,6 +1,6 @@
 package im.tox.antox;
 
-import android.annotation.SuppressLint;
+
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -32,12 +32,6 @@ import org.jsoup.select.Elements;
 
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 
 import im.tox.jtoxcore.ToxUserStatus;
@@ -56,7 +50,6 @@ public class MainActivity extends ActionBarActivity {
      */
     public final static String EXTRA_MESSAGE = "im.tox.antox.MESSAGE";
     private static final String TAG = "im.tox.antox.MainActivity";
-
 
     private Intent startToxIntent;
 
@@ -346,7 +339,7 @@ public class MainActivity extends ActionBarActivity {
     }
 
 
-    @SuppressLint("NewApi")
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
 
@@ -392,9 +385,15 @@ public class MainActivity extends ActionBarActivity {
         return toxSingleton.toxStarted;
     }
 
+    private void restartService()
+    {
+        startToxIntent = new Intent(this, ToxService.class);
+        startToxIntent.setAction(Constants.START_TOX);
+        this.startService(startToxIntent);
+    }
 
 
-    // Downloads the the first working DHT node
+    // Downloads all the working DHT node
     private class DHTNodeDetails extends AsyncTask<Void, Void, Void> {
        String nodeDetails[] = new String[7];
 
@@ -417,13 +416,12 @@ public class MainActivity extends ActionBarActivity {
 
                     if(nodeDetails[6]!=null && nodeDetails[6].equals("WORK"))
                     {
-                        DhtNode.ipv4 = nodeDetails[0];
-                        DhtNode.ipv6 = nodeDetails[1];
-                        DhtNode.port = nodeDetails[2];
-                        DhtNode.key = nodeDetails[3];
-                        DhtNode.owner = nodeDetails[4];
-                        DhtNode.location = nodeDetails[5];
-                        break;
+                        AllDhtNodes.ipv4.add(nodeDetails[0]);
+                        AllDhtNodes.ipv6.add(nodeDetails[1]) ;
+                        AllDhtNodes.port.add(nodeDetails[2]);
+                        AllDhtNodes.key.add(nodeDetails[3]);
+                        AllDhtNodes.owner.add(nodeDetails[4]);
+                        AllDhtNodes.location.add(nodeDetails[5]);
                     }
                 }
             } catch (IOException e) {
@@ -435,18 +433,12 @@ public class MainActivity extends ActionBarActivity {
         @Override
         protected void onPostExecute(Void result)
         {
-            try {
-                //Checking the details
-                System.out.println("node details:");
-                System.out.println(DhtNode.ipv4);
-                System.out.println(DhtNode.ipv6);
-                System.out.println(DhtNode.port);
-                System.out.println(DhtNode.key);
-                System.out.println(DhtNode.owner);
-                System.out.println(DhtNode.location);
-            }catch (NullPointerException e){
-                Toast.makeText(MainActivity.this,"Error Downloading Nodes List",Toast.LENGTH_SHORT).show();
+
+            if(!ToxService.isConnected)  //to cover the scenario if the downloading of nodes finishes
+            {                       //after the tox service has returned (due to a slow connection or something)
+                restartService();
             }
+
         }
     }
 
