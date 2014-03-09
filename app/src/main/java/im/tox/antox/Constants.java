@@ -2,6 +2,10 @@ package im.tox.antox;
 
 public final class Constants {
 
+    public static final int SERVICE_RUNNING=1;
+    public static final int NODE_CONNECTED=2;
+    public static final int NODE_NOT_CONNECTED=3;
+    public static final int ALL_NODES_DOWN=4;
     public static final int TYPE_HEADER = 0;
     public static final int TYPE_FRIEND_REQUEST = 1;
     public static final int TYPE_CONTACT = 2;
