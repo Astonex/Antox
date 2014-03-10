@@ -1,7 +1,7 @@
 package im.tox.antox;
 
 /**
- * Used for storing either the downloaded node details or the details of a node the user has entered
+ * Used for storing the details of a node the user has entered
  * themselves in SettingsActivity
  */
 public final class DhtNode {

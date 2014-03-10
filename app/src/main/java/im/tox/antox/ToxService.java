@@ -35,6 +35,7 @@ public class ToxService extends IntentService {
     private ScheduledExecutorService scheduleTaskExecutor;
 
     private boolean toxStarted;
+    public static boolean isConnected = false;
 
     public ToxService() {
         super("ToxService");
@@ -126,19 +127,32 @@ public class ToxService extends IntentService {
                 SharedPreferences.Editor editor = settingsPref.edit();
                 editor.putString("user_key", toxSingleton.jTox.getAddress());
                 editor.commit();
+                //try all available nodes, until it connects to one
+                for(int i=0;i<AllDhtNodes.ipv4.size();i++)
+                {
 
-
-                try {
-                    if (DhtNode.port != null)
-                        toxSingleton.jTox.bootstrap(DhtNode.ipv4, Integer.parseInt(DhtNode.port), DhtNode.key);
-                } catch (UnknownHostException e) {
-                    e.printStackTrace();
+                    try
+                    {
+                        if (AllDhtNodes.port.get(i) != null)
+                            toxSingleton.jTox.bootstrap(AllDhtNodes.ipv4.get(i), Integer.parseInt(AllDhtNodes.port.get(i)), AllDhtNodes.key.get(i));
+                        isConnected=true;
+                    } catch (UnknownHostException e)
+                    {
+                        Log.d(TAG,"trying next node");
+                        isConnected=false;
+                        e.printStackTrace();
+                    }
+                    if(isConnected) {
+                        Log.d(TAG,"connected to: "+AllDhtNodes.ipv4.get(i));
+                        break;
+                    }
                 }
                 try {
-                    toxSingleton.jTox.getSelfUserStatus();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                        toxSingleton.jTox.getSelfUserStatus();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
 
             } catch (ToxException e) {
                 Log.d(TAG, e.getError().toString());
