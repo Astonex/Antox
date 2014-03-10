@@ -127,23 +127,37 @@ public class SettingsActivity extends ActionBarActivity
 //            UserDetails.status = ToxUserStatus.TOX_USERSTATUS_BUSY;
 //
 //        updatedSettings[1] = statusSpinner.getSelectedItem().toString();
-
+        //first check if any field is not equal to the default string, then only save it
         /* Also save DHT details to DhtNode class */
+
         editor.putBoolean("saved_custom_dht", dhtBox.isChecked());
-        if (dhtBox.isChecked() && !dhtIP.equals(getString(R.id.settings_dht_ip))) {
+        if(dhtBox.isChecked() && !dhtIP.equals(getString(R.id.settings_dht_ip)) && !dhtKey.equals(getString(R.id.settings_dht_key)) && !dhtPort.equals(getString(R.id.settings_dht_port)))
+        {
             editor.putString("saved_dht_ip", dhtIP);
             DhtNode.ipv4 = dhtIP;
-        }
-        if (dhtBox.isChecked() && !dhtKey.equals(getString(R.id.settings_dht_key))) {
+
             editor.putString("saved_dht_key", dhtKey);
             DhtNode.key = dhtKey;
-        }
-        if (dhtBox.isChecked() && !dhtPort.equals(getString(R.id.settings_dht_port))) {
+
             editor.putString("saved_dht_port", dhtPort);
             DhtNode.port = dhtPort;
+
+            editor.commit();
+
+            Context context = getApplicationContext();
+            CharSequence text = "Settings updated";
+            int duration = Toast.LENGTH_SHORT;
+            Toast toast = Toast.makeText(context, text, duration);
+            toast.show();
+
+            finish();
+        }
+        //condition when the user enters no or partial details
+        else if(dhtBox.isChecked())
+        {
+            Toast.makeText(getApplicationContext(),"Please enter all the details",Toast.LENGTH_SHORT).show();
         }
 
-        editor.commit();
 
         /* Send an intent to ToxService notifying change of settings */
         /* IF we send an intent the updatedSettings will always be null*/
@@ -155,13 +169,7 @@ public class SettingsActivity extends ActionBarActivity
         */
 
 
-        Context context = getApplicationContext();
-        CharSequence text = "Settings updated";
-        int duration = Toast.LENGTH_SHORT;
-        Toast toast = Toast.makeText(context, text, duration);
-        toast.show();
 
-        finish();
     }
 
     /**
