@@ -132,6 +132,7 @@ public class ToxService extends IntentService {
                     if (DhtNode.port != null)
                         toxSingleton.jTox.bootstrap(DhtNode.ipv4, Integer.parseInt(DhtNode.port), DhtNode.key);
                 } catch (UnknownHostException e) {
+                    MainActivity.conStatus=Constants.NODE_NOT_CONNECTED;
                     e.printStackTrace();
                 }
                 try {
@@ -307,7 +308,10 @@ public class ToxService extends IntentService {
                 LocalBroadcastManager.getInstance(this).sendBroadcast(notify);
             }
         }
+        if(MainActivity.conStatus!=Constants.NODE_NOT_CONNECTED)
+            MainActivity.conStatus=Constants.NODE_CONNECTED;
 
+        System.out.println("status::::"+MainActivity.conStatus);
     }
 
 }

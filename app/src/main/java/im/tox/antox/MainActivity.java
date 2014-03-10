@@ -1,6 +1,6 @@
 package im.tox.antox;
 
-import android.annotation.SuppressLint;
+
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -32,12 +32,6 @@ import org.jsoup.select.Elements;
 
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 
 import im.tox.jtoxcore.ToxUserStatus;
@@ -56,7 +50,6 @@ public class MainActivity extends ActionBarActivity {
      */
     public final static String EXTRA_MESSAGE = "im.tox.antox.MESSAGE";
     private static final String TAG = "im.tox.antox.MainActivity";
-
 
     private Intent startToxIntent;
 
@@ -83,6 +76,8 @@ public class MainActivity extends ActionBarActivity {
      */
     private Menu menu;
     private boolean isInChat=false;
+
+    protected static int conStatus = Constants.SERVICE_RUNNING;
 
     private BroadcastReceiver receiver = new BroadcastReceiver() {
 
@@ -149,6 +144,7 @@ public class MainActivity extends ActionBarActivity {
             // Executes in a separate thread so UI experience isn't affected
            // Downloads the DHT node details
             new DHTNodeDetails().execute();
+            new checkConnection().execute(); //background tasks which runs until a node is connected
         } else {
 
         }
@@ -346,7 +342,7 @@ public class MainActivity extends ActionBarActivity {
     }
 
 
-    @SuppressLint("NewApi")
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
 
@@ -392,7 +388,80 @@ public class MainActivity extends ActionBarActivity {
         return toxSingleton.toxStarted;
     }
 
+    private void restartService()
+    {
+        startToxIntent = new Intent(this, ToxService.class);
+        startToxIntent.setAction(Constants.START_TOX);
+        this.startService(startToxIntent);
+    }
 
+    /**
+     * Runs until the node is connected, if it fails to connect
+     * the new node details are downloaded and tox service is restarted
+     */
+    private class checkConnection extends  AsyncTask<Void, Void, Void>
+    {
+        ArrayList<String> nodeDown = new ArrayList<String>();
+        String nodeDetails[] = new String[7];
+        boolean flag = false;
+
+        @Override
+        protected Void doInBackground(Void... params)
+        {
+            while(true)
+            {
+                if(conStatus!=Constants.SERVICE_RUNNING)
+                {
+                    if(conStatus==Constants.NODE_CONNECTED || conStatus==Constants.ALL_NODES_DOWN)
+                        break;
+                    else
+                    {
+                        nodeDown.add(DhtNode.ipv4);
+                        try {
+                            // Connect to the web site
+                            Document document = Jsoup.connect("http://wiki.tox.im/Nodes").get();
+                            Elements nodeRows = document.getElementsByTag("tr");
+                            flag=false;
+                            for(Element nodeRow : nodeRows)
+                            {
+                                Elements nodeElements = nodeRow.getElementsByTag("td");
+                                int c = 0;
+                                for(Element nodeElement : nodeElements)
+                                    nodeDetails[c++]=nodeElement.text();
+                                int i;
+                                for(i=0;i<nodeDown.size();i++)
+                                    if(nodeDetails[0].equals(nodeDown.get(i)))
+                                        break;
+
+                                if(i==nodeDown.size() && nodeDetails[6]!=null && nodeDetails[6].equals("WORK"))
+                                {
+
+                                    DhtNode.ipv4 = nodeDetails[0];
+                                    DhtNode.ipv6 = nodeDetails[1];
+                                    DhtNode.port = nodeDetails[2];
+                                    DhtNode.key = nodeDetails[3];
+                                    DhtNode.owner = nodeDetails[4];
+                                    DhtNode.location = nodeDetails[5];
+                                    flag=true;
+                                    restartService();
+                                    break;
+                                }
+                            }
+                            if(!flag)
+                            {
+                                Log.i(TAG, "all nodes down");
+                                conStatus=Constants.ALL_NODES_DOWN;
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+                }
+            }
+            return null;
+        }
+    }
 
     // Downloads the the first working DHT node
     private class DHTNodeDetails extends AsyncTask<Void, Void, Void> {
