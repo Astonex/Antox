@@ -112,19 +112,19 @@ public class ToxService extends IntentService {
                 toxSingleton.friendsList = (AntoxFriendList) toxSingleton.jTox.getFriendList();
 
                 if(friends.size() > 0) {
-                        Log.d(TAG, "Adding friends to tox friendlist");
-                        for (int i = 0; i < friends.size(); i++) {
-                            try {
-                                toxSingleton.jTox.confirmRequest(friends.get(i).friendKey);
-                            } catch (Exception e) {
+                    Log.d(TAG, "Adding friends to tox friendlist");
+                    for (int i = 0; i < friends.size(); i++) {
+                        try {
+                            toxSingleton.jTox.confirmRequest(friends.get(i).friendKey);
+                        } catch (Exception e) {
 
-                            }
-                            AntoxFriend friend = toxSingleton.friendsList.addFriendIfNotExists(i);
-                            friend.setId(friends.get(i).friendKey);
-                            friend.setName(friends.get(i).friendName);
-                            friend.setStatusMessage(friends.get(i).personalNote);
                         }
-                        Log.d(TAG, "Size of tox friendlist: " + toxSingleton.friendsList.all().size());
+                        AntoxFriend friend = toxSingleton.friendsList.addFriendIfNotExists(i);
+                        friend.setId(friends.get(i).friendKey);
+                        friend.setName(friends.get(i).friendName);
+                        friend.setStatusMessage(friends.get(i).personalNote);
+                    }
+                    Log.d(TAG, "Size of tox friendlist: " + toxSingleton.friendsList.all().size());
                 }
 
                 AntoxOnMessageCallback antoxOnMessageCallback = new AntoxOnMessageCallback(getApplicationContext());
@@ -150,19 +150,24 @@ public class ToxService extends IntentService {
                 editor.putString("user_key", toxSingleton.jTox.getAddress());
                 editor.commit();
 
+                /**the case when the background thread finishes downloading after the toxService has
+                 * reached this point needs to be taken care of, else nothing will be bootstrapped
+                 * because nothing was downloaded yet
+                 **/
+
 
                 try {
                     //If counter has reached max size set it back to zero and to try all nodes again
                     if(DhtNode.counter >= DhtNode.ipv4.size())
                         DhtNode.counter = 0;
 
-                    if (DhtNode.port.get(DhtNode.counter) != null
-                            || DhtNode.ipv4.get(DhtNode.counter) != null
-                            || DhtNode.key.get(DhtNode.counter) != null)
-
+                    if (DhtNode.port.size() > 0   //was getting indexoutofboundException if nothing was downloaded
+                            || DhtNode.ipv4.size() > 0
+                            || DhtNode.key.size() > 0) {
                         toxSingleton.jTox.bootstrap(DhtNode.ipv4.get(DhtNode.counter),
                                 Integer.parseInt(DhtNode.port.get(DhtNode.counter)), DhtNode.key.get(DhtNode.counter));
-
+                        System.out.println("$%# :"+DhtNode.ipv4.get(DhtNode.counter));
+                    }
                 } catch (UnknownHostException e) {
                     this.stopService(intent);
                     DhtNode.counter++;
@@ -398,14 +403,14 @@ public class ToxService extends IntentService {
                     friend.setName(friends.get(pos).friendName);
                     friend.setStatusMessage(friends.get(pos).personalNote);
                 }
-
+System.out.println("$% "+pos+" "+friends.get(pos).friendName);
                 toxSingleton.jTox.save();
                 Log.d(TAG, "Saving request");
 
                 Log.d(TAG, "Tox friend list updated. New size: " + toxSingleton.friendsList.all().size());
 
             } catch (Exception e) {
-
+System.out.println("voilA!!");
             }
 
             if (toxSingleton.friend_requests.size() != 0) {
