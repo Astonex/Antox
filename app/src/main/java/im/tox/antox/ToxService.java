@@ -166,7 +166,7 @@ public class ToxService extends IntentService {
                             || DhtNode.key.size() > 0) {
                         toxSingleton.jTox.bootstrap(DhtNode.ipv4.get(DhtNode.counter),
                                 Integer.parseInt(DhtNode.port.get(DhtNode.counter)), DhtNode.key.get(DhtNode.counter));
-                        System.out.println("$%# :"+DhtNode.ipv4.get(DhtNode.counter));
+                        System.out.println("Connected to :"+DhtNode.ipv4.get(DhtNode.counter));//debugging
                     }
                 } catch (UnknownHostException e) {
                     this.stopService(intent);
@@ -403,14 +403,13 @@ public class ToxService extends IntentService {
                     friend.setName(friends.get(pos).friendName);
                     friend.setStatusMessage(friends.get(pos).personalNote);
                 }
-System.out.println("$% "+pos+" "+friends.get(pos).friendName);
                 toxSingleton.jTox.save();
                 Log.d(TAG, "Saving request");
 
                 Log.d(TAG, "Tox friend list updated. New size: " + toxSingleton.friendsList.all().size());
 
             } catch (Exception e) {
-System.out.println("voilA!!");
+
             }
 
             if (toxSingleton.friend_requests.size() != 0) {
