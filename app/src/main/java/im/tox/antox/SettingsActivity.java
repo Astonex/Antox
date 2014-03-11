@@ -7,12 +7,14 @@ import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.ActionBarActivity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -27,8 +29,7 @@ import im.tox.jtoxcore.ToxUserStatus;
  * @author Mark Winter (Astonex)
  */
 
-public class SettingsActivity extends ActionBarActivity
-        implements DHTDialogFragment.DHTDialogListener {
+public class SettingsActivity extends ActionBarActivity{
     /**
      * Spinner for displaying acceptable statuses (online/away/busy) to the users
      */
@@ -53,9 +54,9 @@ public class SettingsActivity extends ActionBarActivity
      * 2D string array to store DHT node details
      */
     String[][] downloadedDHTNodes;
-
-
-
+    LinearLayout advancedOptions;
+    View advancedView;
+    EditText etdhtIP,etdhtPort,etdhtKey;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,7 +67,7 @@ public class SettingsActivity extends ActionBarActivity
 
 //        statusSpinner = (Spinner) findViewById(R.id.settings_spinner_status);
         dhtBox = (CheckBox) findViewById(R.id.settings_dht_box);
-
+        advancedOptions = (LinearLayout)findViewById(R.id.showAdvanced);
         SharedPreferences pref = getSharedPreferences("settings",
                 Context.MODE_PRIVATE);
 
@@ -88,10 +89,10 @@ public class SettingsActivity extends ActionBarActivity
 
         // Set dhtBox as checked if it is set
         dhtBox.setChecked(pref.getBoolean("saved_custom_dht", false));
-        if(pref.getBoolean("saved_custom_dht", false)) {
-            dhtBox.setChecked(true);
+        if(dhtBox.isChecked())
+            openAdvanced();
         }
-    }
+
 
     /**
      * This method is called when the user updates their settings. It will check all the text fields
@@ -113,57 +114,53 @@ public class SettingsActivity extends ActionBarActivity
                 Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
 
-		/*
-		 * If the fields aren't equal to the default strings in strings.xml then
-		 * they contain user entered data so they need saving
-		 */
-
-//        editor.putString("saved_status_hint", statusSpinner.getSelectedItem().toString());
-//        if (statusSpinner.getSelectedItem().toString().equals("online"))
-//            UserDetails.status = ToxUserStatus.TOX_USERSTATUS_NONE;
-//        if (statusSpinner.getSelectedItem().toString().equals("away"))
-//            UserDetails.status = ToxUserStatus.TOX_USERSTATUS_AWAY;
-//        if (statusSpinner.getSelectedItem().toString().equals("busy"))
-//            UserDetails.status = ToxUserStatus.TOX_USERSTATUS_BUSY;
-//
-//        updatedSettings[1] = statusSpinner.getSelectedItem().toString();
-
+        //first check if any field is not equal to the default string, then only save it
         /* Also save DHT details to DhtNode class */
+        if(etdhtIP!=null) {
+            dhtPort = etdhtPort.getText().toString();
+            dhtKey = etdhtKey.getText().toString();
+            dhtIP = etdhtIP.getText().toString();
+        }
+
         editor.putBoolean("saved_custom_dht", dhtBox.isChecked());
-        if (dhtBox.isChecked() && !dhtIP.equals(getString(R.id.settings_dht_ip))) {
+        if(dhtBox.isChecked() && !dhtIP.equals("") && !dhtKey.equals("") && !dhtPort.equals(""))
+        {
             editor.putString("saved_dht_ip", dhtIP);
-            DhtNode.ipv4.add(dhtIP);
-        }
-        if (dhtBox.isChecked() && !dhtKey.equals(getString(R.id.settings_dht_key))) {
+
             editor.putString("saved_dht_key", dhtKey);
-            DhtNode.key.add(dhtKey);
-        }
-        if (dhtBox.isChecked() && !dhtPort.equals(getString(R.id.settings_dht_port))) {
+
             editor.putString("saved_dht_port", dhtPort);
-            DhtNode.port.add(dhtPort);
+
+            editor.commit();
+
+            Context context = getApplicationContext();
+            CharSequence text = "Settings updated";
+            int duration = Toast.LENGTH_SHORT;
+            Toast toast = Toast.makeText(context, text, duration);
+            toast.show();
+
+            finish();
+        }
+        //condition when the user enters no or partial details
+        else if(dhtBox.isChecked())
+        {
+            Toast.makeText(getApplicationContext(),"Please enter all the details",Toast.LENGTH_SHORT).show();
+        }
+        else
+        {
+            Toast.makeText(getApplicationContext(),"User-defined settings removed",Toast.LENGTH_SHORT).show();
+            editor.putString("saved_dht_ip", "");
+
+            editor.putString("saved_dht_key", "");
+
+            editor.putString("saved_dht_port", "");
+
+            editor.commit();
+            finish();
         }
 
-        editor.commit();
 
-        /* Send an intent to ToxService notifying change of settings */
-        /* IF we send an intent the updatedSettings will always be null*/
-        /*
-        Intent updateSettings = new Intent(this, ToxService.class);
-        updateSettings.setAction(Constants.UPDATE_SETTINGS);
-        updateSettings.putExtra("newSettings", updatedSettings);
-        this.startService(updateSettings);
-        */
-
-
-        Context context = getApplicationContext();
-        CharSequence text = "Settings updated";
-        int duration = Toast.LENGTH_SHORT;
-        Toast toast = Toast.makeText(context, text, duration);
-        toast.show();
-
-        finish();
     }
-
     /**
      * This method is called when the user clicks on the check button for entering their own DHT
      * settings
@@ -173,32 +170,53 @@ public class SettingsActivity extends ActionBarActivity
     public void onDhtBoxClicked(View view) {
         //If the user is checking the box, create a dialog prompting the user for the information
         boolean checked = ((CheckBox) view).isChecked();
-        if(checked) {
-            // Create an instance of the dialog fragment and show it
-            DialogFragment dialog = new DHTDialogFragment();
-            Bundle bundle = new Bundle();
-            bundle.putString(dhtIP, dhtIP);
-            bundle.putString(dhtPort, dhtPort);
-            bundle.putString(dhtKey, dhtKey);
-            dialog.setArguments(bundle);
-
-            dialog.show(getSupportFragmentManager(), "NoticeDialogFragment");
+        if(checked)
+        {
+            openAdvanced();
         }
+        else
+            closeAdvanced();
     }
 
-    //Called when the DHT settings dialog is confirmed
-    @Override
-    public void onDialogPositiveClick(DialogFragment dialog,
-                                      String dhtIP_, String dhtPort_, String dhtKey_) {
-        dhtIP = dhtIP_;
-        dhtPort = dhtPort_;
-        dhtKey = dhtKey_;
+    void openAdvanced()
+    {
+        LayoutInflater mInflater;
+        mInflater = LayoutInflater.from(getApplicationContext());
+        advancedView = mInflater.inflate(R.layout.dialog_settings_dht, null);
+        advancedOptions.addView(advancedView);
+        etdhtIP=(EditText)advancedView.findViewById(R.id.settings_dht_ip);
+        etdhtPort=(EditText)advancedView.findViewById(R.id.settings_dht_port);
+        etdhtKey=(EditText)advancedView.findViewById(R.id.settings_dht_key);
+        etdhtKey.setText(dhtKey);
+        etdhtPort.setText(dhtPort);
+        etdhtIP.setText(dhtIP);
+
     }
 
-    //Called when the DHT settings dialog is canceled
+    void closeAdvanced()
+    {
+        advancedOptions.removeView(advancedView);
+    }
+
     @Override
-    public void onDialogNegativeClick(DialogFragment dialog) {
-        dhtBox.setChecked(false);
+    public void onBackPressed() {
+        if(!dhtBox.isChecked())
+        {
+            SharedPreferences pref = getSharedPreferences("settings",
+                    Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = pref.edit();
+            Toast.makeText(getApplicationContext(),"User-defined settings removed",Toast.LENGTH_SHORT).show();
+            editor.putString("saved_dht_ip", "");
+
+            editor.putString("saved_dht_key", "");
+
+            editor.putString("saved_dht_port", "");
+
+            editor.putBoolean("saved_custom_dht", false);
+            editor.commit();
+
+        }
+        finish();
     }
 
     @Override
