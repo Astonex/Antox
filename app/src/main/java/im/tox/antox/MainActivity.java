@@ -1,10 +1,12 @@
 package im.tox.antox;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -163,6 +165,8 @@ public class MainActivity extends ActionBarActivity {
             if(DhtNode.ipv4.size() == 0)
                 new DHTNodeDetails().execute();
         } else {
+            showAlertDialog(MainActivity.this, "No Internet Connection",
+                    "You are not connected to the Internet");
 
         }
 
@@ -409,6 +413,28 @@ public class MainActivity extends ActionBarActivity {
         this.menu=menu;
 
         return true;
+    }
+
+    public void showAlertDialog(Context context, String title, String message) {
+        AlertDialog alertDialog = new AlertDialog.Builder(context).create();
+
+        // Setting Dialog Title
+        alertDialog.setTitle(title);
+
+        // Setting Dialog Message
+        alertDialog.setMessage(message);
+
+        // Setting alert dialog icon
+        alertDialog.setIcon(R.drawable.ic_launcher);
+
+        // Setting OK Button
+        alertDialog.setButton("OK", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+            }
+        });
+
+        // Showing Alert Message
+        alertDialog.show();
     }
 
     /**
