@@ -102,7 +102,7 @@ public class ToxService extends IntentService {
                 Log.d(TAG, "Loaded requests from database");
 
                 Intent notify = new Intent(Constants.BROADCAST_ACTION);
-                notify.putExtra("action", Constants.UPDATE_FRIEND_REQUESTS);
+                notify.putExtra("action", Constants.UPDATE_LEFT_PANE);
                 LocalBroadcastManager.getInstance(this).sendBroadcast(notify);
 
                 /* Populate tox friends list with saved friends in database */
@@ -163,11 +163,11 @@ public class ToxService extends IntentService {
 
                     if (DhtNode.port.size() > 0   //was getting indexoutofboundException if nothing was downloaded
                             || DhtNode.ipv4.size() > 0
-                            || DhtNode.key.size() > 0)
-
+                            || DhtNode.key.size() > 0) {
                         toxSingleton.jTox.bootstrap(DhtNode.ipv4.get(DhtNode.counter),
                                 Integer.parseInt(DhtNode.port.get(DhtNode.counter)), DhtNode.key.get(DhtNode.counter));
-
+                        System.out.println("$%# :"+DhtNode.ipv4.get(DhtNode.counter));
+                    }
                 } catch (UnknownHostException e) {
                     this.stopService(intent);
                     DhtNode.counter++;
@@ -263,13 +263,42 @@ public class ToxService extends IntentService {
             notify.putExtra("action", Constants.UPDATE_MESSAGES);
             notify.putExtra("key", key);
             LocalBroadcastManager.getInstance(this).sendBroadcast(notify);
+        } else if (intent.getAction().equals(Constants.DELETE_FRIEND)) {
+            Log.d(TAG, "Constants.DELETE_FRIEND");
+            String key = intent.getStringExtra("key");
+            boolean wasException = false;
+            // Remove friend from tox friend list
+            AntoxFriend friend = toxSingleton.friendsList.getById(key);
+            if(friend != null) {
+
+                try {
+                    toxSingleton.jTox.deleteFriend(friend.getFriendnumber());
+                } catch (ToxException e) {
+                    wasException = true;
+                    Log.d(TAG, e.getError().toString());
+                    e.printStackTrace();
+                }
+                Log.d(TAG, "Friend deleted from tox list. New size: " + toxSingleton.friendsList.all().size());
+                if (!wasException) {
+                    //Delete friend from list
+                    toxSingleton.friendsList.removeFriend(friend.getFriendnumber());
+                    // Delete friend from database
+                    toxSingleton.mDbHelper.deleteFriend(key);
+                    toxSingleton.mDbHelper.close();
+                    //Broadcast to update left pane
+                    Intent notify = new Intent(Constants.BROADCAST_ACTION);
+                    notify.putExtra("action", Constants.UPDATE_LEFT_PANE);
+                    notify.putExtra("key", key);
+                    LocalBroadcastManager.getInstance(this).sendBroadcast(notify);
+                }
+            }
         } else if (intent.getAction().equals(Constants.SEND_MESSAGE)) {
             Log.d(TAG, "Constants.SEND_MESSAGE");
             String key = intent.getStringExtra("key");
             String message = intent.getStringExtra("message");
-            toxSingleton.mDbHelper.addMessage(-1, key, message, true, false);
             /* Send message */
             ToxFriend friend = null;
+            boolean sendingSucceeded = true;
             try {
                 friend = toxSingleton.friendsList.getById(key);
             } catch (Exception e) {
@@ -283,12 +312,17 @@ public class ToxService extends IntentService {
             } catch (ToxException e) {
                 Log.d(TAG, e.toString());
                 e.printStackTrace();
+                sendingSucceeded = false;
             }
-            /* Broadcast */
-            Intent notify = new Intent(Constants.BROADCAST_ACTION);
-            notify.putExtra("action", Constants.UPDATE_MESSAGES);
-            notify.putExtra("key", key);
-            LocalBroadcastManager.getInstance(this).sendBroadcast(notify);
+            if (sendingSucceeded) {
+            /* Add message to chatlog */
+                toxSingleton.mDbHelper.addMessage(-1, key, message, true, false);
+            /* Broadcast to update UI */
+                Intent notify = new Intent(Constants.BROADCAST_ACTION);
+                notify.putExtra("action", Constants.UPDATE_MESSAGES);
+                notify.putExtra("key", key);
+                LocalBroadcastManager.getInstance(this).sendBroadcast(notify);
+            }
         } else if (intent.getAction().equals(Constants.FRIEND_REQUEST)) {
             Log.d(TAG, "Constants.FRIEND_REQUEST");
             String key = intent.getStringExtra(AntoxOnFriendRequestCallback.FRIEND_KEY);
@@ -369,14 +403,14 @@ public class ToxService extends IntentService {
                     friend.setName(friends.get(pos).friendName);
                     friend.setStatusMessage(friends.get(pos).personalNote);
                 }
-
+System.out.println("$% "+pos+" "+friends.get(pos).friendName);
                 toxSingleton.jTox.save();
                 Log.d(TAG, "Saving request");
 
                 Log.d(TAG, "Tox friend list updated. New size: " + toxSingleton.friendsList.all().size());
 
             } catch (Exception e) {
-
+System.out.println("voilA!!");
             }
 
             if (toxSingleton.friend_requests.size() != 0) {
