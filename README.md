@@ -42,17 +42,17 @@ When submitting a bug report, please include the following:-
 - Friends list updates when a friend comes online / goes offline, or changes their other details at all.
 
 ###TODO
-- Update the friends list properly after adding a friend (call updateLeftPane();)
 - Check updating the users settings gets sent across the network
 - Check accepting friend requests then proceeds to update the users details in the friends list
 - Friends default status should be offline when starting the app instead of last known status
 - Start working on the chat
+- Check friendList for received/send requests so to avoid adding the same friend twice
 - Start adding fail-safes: Notify user when they're not connected to the internet, automatically try different DHT nodes if it can't connect to the first one, restart ToxService if it catches an exception, etc.
 - Implement a blocking list so that user never sees friend requests from a blocked ID (very low priority)
 - Add a 'paranoid' mode to the app so nothing at all is saved (very low priority)
 
 ###Screenshots of progress
-<img src="http://vexx.us/Examples/Antox/device-2014-03-02-231541.png" width="230px" height="400px"/><img src="http://vexx.us/Examples/Antox/device-2014-03-02-231621.png" width="230px" height="400px"/><img src="http://vexx.us/Examples/Antox/device-2014-03-02-231650.png" width="230px" height="400px"/>
+<img src="http://vexx.us/Examples/Antox/device-2014-03-02-231541.png" width="230px" height="400px"/><img src="http://vexx.us/Examples/Antox/device-2014-03-02-231621.png" width="230px" height="400px"/><img src="http://markwinter.me/profile.png" width="230px" height="400px"/>
 <img src="http://vexx.us/Examples/Antox/device-2014-03-09-203434.png" width="690px" height=431px"/>
 
 *The Android robot is reproduced or modified from work created and shared by Google and used according to terms described in the Creative Commons 3.0 Attribution License.*

@@ -133,7 +133,7 @@ public class MainActivity extends ActionBarActivity {
                     Toast toast = Toast.makeText(ctx, text, duration);
                     toast.show();
                 } else if (action == Constants.FRIEND_LIST) {
-                    
+
                 } else if (action == Constants.UPDATE) {
                     updateLeftPane();
                 }
@@ -160,7 +160,8 @@ public class MainActivity extends ActionBarActivity {
         {
             // Executes in a separate thread so UI experience isn't affected
            // Downloads the DHT node details
-            new DHTNodeDetails().execute();
+            if(DhtNode.ipv4.size() == 0)
+                new DHTNodeDetails().execute();
         } else {
 
         }
@@ -308,7 +309,7 @@ public class MainActivity extends ActionBarActivity {
      */
     private void addFriend() {
         Intent intent = new Intent(this, AddFriendActivity.class);
-        startActivity(intent);
+        startActivityForResult(intent, Constants.ADD_FRIEND_REQUEST_CODE);
     }
 
     @Override
@@ -493,7 +494,11 @@ public class MainActivity extends ActionBarActivity {
             finish();
         }
     }
-
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(requestCode==Constants.ADD_FRIEND_REQUEST_CODE && resultCode==RESULT_OK){
+            updateLeftPane();
+        }
+    }
     private class PaneListener implements SlidingPaneLayout.PanelSlideListener {
 
         @Override

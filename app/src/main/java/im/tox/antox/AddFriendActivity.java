@@ -69,7 +69,13 @@ public class AddFriendActivity extends ActionBarActivity {
             return;
         }
 
-        String[] friendData = { friendID.getText().toString(), friendMessage.getText().toString()};
+        /* This is a temporary work around until jToxcore stops cutting off the last byte of a string.
+         * As it is now, if you send an empty message it will cause jToxcore to throw an exception
+         * so simply send a single character instead to stop this.
+         */
+        String message = friendMessage.getText().toString();
+
+        String[] friendData = { friendID.getText().toString(), message};
 
         Intent addFriend = new Intent(this, ToxService.class);
         addFriend.setAction(Constants.ADD_FRIEND);
@@ -83,6 +89,9 @@ public class AddFriendActivity extends ActionBarActivity {
         Intent update = new Intent(Constants.BROADCAST_ACTION);
         update.putExtra("action", Constants.UPDATE);
         LocalBroadcastManager.getInstance(this).sendBroadcast(update);
+
+        Intent i = new Intent();
+        setResult(RESULT_OK,i);
 
         // Close activity
         finish();

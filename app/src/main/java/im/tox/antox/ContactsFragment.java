@@ -16,6 +16,8 @@ import android.widget.ListView;
 import java.util.ArrayList;
 import java.util.List;
 
+import im.tox.jtoxcore.ToxException;
+
 
 /**
  * Created by ollie on 28/02/14.
@@ -168,9 +170,20 @@ public class ContactsFragment extends Fragment {
                                             }
                                             db.deleteFriend(key);
                                             db.close();
+
                                             /* Remove friend from tox friend list */
-                                            List<AntoxFriend> friend = ((MainActivity)getActivity()).toxSingleton.friendsList.getByName(item.first, false);
-                                            ((MainActivity)getActivity()).toxSingleton.friendsList.removeFriend(friend.get(0).getFriendnumber());
+                                            AntoxFriend friend = ((MainActivity)getActivity()).toxSingleton.friendsList.getById(key);
+                                            if(friend != null) {
+                                                ((MainActivity) getActivity()).toxSingleton.friendsList.removeFriend(friend.getFriendnumber());
+                                                try {
+                                                    ((MainActivity) getActivity()).toxSingleton.jTox.deleteFriend(friend.getFriendnumber());
+                                                } catch (ToxException e) {
+                                                    Log.d("ContactsFragment", e.getError().toString());
+                                                    e.printStackTrace();
+                                                }
+                                                Log.d("ContactsFragment", "Friend deleted from tox list. New size: " + main_act.toxSingleton.friendsList.all().size());
+                                            }
+
                                             ((MainActivity)getActivity()).updateLeftPane();
                                             break;
                                         case 2:
