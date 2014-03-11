@@ -1,7 +1,6 @@
 package im.tox.antox;
 
 import android.annotation.SuppressLint;
-import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -23,6 +22,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
+import android.app.AlertDialog;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
