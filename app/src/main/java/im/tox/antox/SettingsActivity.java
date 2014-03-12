@@ -1,23 +1,19 @@
 package im.tox.antox;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.ActionBarActivity;
+import android.text.Html;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
-import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import im.tox.jtoxcore.ToxUserStatus;
 
 /**
  * Settings Activity DHT nodes.
@@ -38,6 +34,10 @@ public class SettingsActivity extends ActionBarActivity
      */
     private CheckBox dhtBox;
     /**
+     * TextView that displays the previous DHT settings if the CheckBox is checked
+     */
+    private TextView dhtPeviousSettings;
+    /**
      * String that store's the user's DHT IP address entry
      */
     private String dhtIP;
@@ -55,8 +55,6 @@ public class SettingsActivity extends ActionBarActivity
     String[][] downloadedDHTNodes;
 
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,6 +64,7 @@ public class SettingsActivity extends ActionBarActivity
 
 //        statusSpinner = (Spinner) findViewById(R.id.settings_spinner_status);
         dhtBox = (CheckBox) findViewById(R.id.settings_dht_box);
+        dhtPeviousSettings = (TextView) findViewById(R.id.previous_dht_settings);
 
         SharedPreferences pref = getSharedPreferences("settings",
                 Context.MODE_PRIVATE);
@@ -87,9 +86,10 @@ public class SettingsActivity extends ActionBarActivity
         }
 
         // Set dhtBox as checked if it is set
-        dhtBox.setChecked(pref.getBoolean("saved_custom_dht", false));
-        if(pref.getBoolean("saved_custom_dht", false)) {
+        if (pref.getBoolean("saved_custom_dht", false)) {
             dhtBox.setChecked(true);
+            updateSettingsText();
+            dhtPeviousSettings.setVisibility(View.VISIBLE);
         }
     }
 
@@ -103,7 +103,7 @@ public class SettingsActivity extends ActionBarActivity
         /**
          * String array to store updated details to be passed by intent to ToxService
          */
-        String[] updatedSettings = { null, null, null};
+        String[] updatedSettings = {null, null, null};
 
         //EditText statusHintText = (EditText) findViewById(R.id.settings_status_hint);
 
@@ -114,7 +114,7 @@ public class SettingsActivity extends ActionBarActivity
         SharedPreferences.Editor editor = pref.edit();
 
 		/*
-		 * If the fields aren't equal to the default strings in strings.xml then
+         * If the fields aren't equal to the default strings in strings.xml then
 		 * they contain user entered data so they need saving
 		 */
 
@@ -173,7 +173,7 @@ public class SettingsActivity extends ActionBarActivity
     public void onDhtBoxClicked(View view) {
         //If the user is checking the box, create a dialog prompting the user for the information
         boolean checked = ((CheckBox) view).isChecked();
-        if(checked) {
+        if (checked) {
             // Create an instance of the dialog fragment and show it
             DialogFragment dialog = new DHTDialogFragment();
             Bundle bundle = new Bundle();
@@ -183,6 +183,8 @@ public class SettingsActivity extends ActionBarActivity
             dialog.setArguments(bundle);
 
             dialog.show(getSupportFragmentManager(), "NoticeDialogFragment");
+        } else {
+            dhtPeviousSettings.setVisibility(View.GONE);
         }
     }
 
@@ -193,6 +195,8 @@ public class SettingsActivity extends ActionBarActivity
         dhtIP = dhtIP_;
         dhtPort = dhtPort_;
         dhtKey = dhtKey_;
+        updateSettingsText();
+        dhtPeviousSettings.setVisibility(View.VISIBLE);
     }
 
     //Called when the DHT settings dialog is canceled
@@ -218,5 +222,18 @@ public class SettingsActivity extends ActionBarActivity
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * This method updates the text displayed on dhtPreviousSettings TextView
+     */
+    private void updateSettingsText() {
+        StringBuilder stringBuilder = new StringBuilder(256);
+        stringBuilder.append("<b>IP address: </b>");
+        stringBuilder.append(dhtIP);
+        stringBuilder.append("<br><b>Port address: </b>");
+        stringBuilder.append(dhtPort);
+        stringBuilder.append("<br><b>Public key address: </b>");
+        stringBuilder.append(dhtKey);
+        dhtPeviousSettings.setText(Html.fromHtml(stringBuilder.toString()));
+    }
 
 }
