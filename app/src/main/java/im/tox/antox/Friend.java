@@ -4,16 +4,20 @@ public class Friend {
 	public int icon;
 	public String friendName;
 	public String friendStatus;
+    public String personalNote;
+    public String friendKey;
 
 	public Friend() {
 		super();
 	}
 
-	public Friend(int icon, String friendName, String friendStatus) {
+	public Friend(int icon, String friendName, String userStatus, String userNote, String key) {
 		super();
 		this.icon = icon;
 		this.friendName = friendName;
-		this.friendStatus = friendStatus;
+		this.friendStatus = userStatus;
+        this.personalNote = userNote;
+        this.friendKey = key;
 	}
 
 	@Override

@@ -64,7 +64,7 @@ public class SettingsActivity extends ActionBarActivity
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
 
-        statusSpinner = (Spinner) findViewById(R.id.settings_spinner_status);
+//        statusSpinner = (Spinner) findViewById(R.id.settings_spinner_status);
         dhtBox = (CheckBox) findViewById(R.id.settings_dht_box);
 
         SharedPreferences pref = getSharedPreferences("settings",
@@ -118,38 +118,42 @@ public class SettingsActivity extends ActionBarActivity
 		 * they contain user entered data so they need saving
 		 */
 
-        editor.putString("saved_status_hint", statusSpinner.getSelectedItem().toString());
-        if (statusSpinner.getSelectedItem().toString().equals("online"))
-            UserDetails.status = ToxUserStatus.TOX_USERSTATUS_NONE;
-        if (statusSpinner.getSelectedItem().toString().equals("away"))
-            UserDetails.status = ToxUserStatus.TOX_USERSTATUS_AWAY;
-        if (statusSpinner.getSelectedItem().toString().equals("busy"))
-            UserDetails.status = ToxUserStatus.TOX_USERSTATUS_BUSY;
-
-        updatedSettings[1] = statusSpinner.getSelectedItem().toString();
+//        editor.putString("saved_status_hint", statusSpinner.getSelectedItem().toString());
+//        if (statusSpinner.getSelectedItem().toString().equals("online"))
+//            UserDetails.status = ToxUserStatus.TOX_USERSTATUS_NONE;
+//        if (statusSpinner.getSelectedItem().toString().equals("away"))
+//            UserDetails.status = ToxUserStatus.TOX_USERSTATUS_AWAY;
+//        if (statusSpinner.getSelectedItem().toString().equals("busy"))
+//            UserDetails.status = ToxUserStatus.TOX_USERSTATUS_BUSY;
+//
+//        updatedSettings[1] = statusSpinner.getSelectedItem().toString();
 
         /* Also save DHT details to DhtNode class */
         editor.putBoolean("saved_custom_dht", dhtBox.isChecked());
         if (dhtBox.isChecked() && !dhtIP.equals(getString(R.id.settings_dht_ip))) {
             editor.putString("saved_dht_ip", dhtIP);
-            DhtNode.ipv4 = dhtIP;
+            DhtNode.ipv4.add(dhtIP);
         }
         if (dhtBox.isChecked() && !dhtKey.equals(getString(R.id.settings_dht_key))) {
             editor.putString("saved_dht_key", dhtKey);
-            DhtNode.key = dhtKey;
+            DhtNode.key.add(dhtKey);
         }
         if (dhtBox.isChecked() && !dhtPort.equals(getString(R.id.settings_dht_port))) {
             editor.putString("saved_dht_port", dhtPort);
-            DhtNode.port = dhtPort;
+            DhtNode.port.add(dhtPort);
         }
 
         editor.commit();
 
         /* Send an intent to ToxService notifying change of settings */
+        /* IF we send an intent the updatedSettings will always be null*/
+        /*
         Intent updateSettings = new Intent(this, ToxService.class);
         updateSettings.setAction(Constants.UPDATE_SETTINGS);
         updateSettings.putExtra("newSettings", updatedSettings);
         this.startService(updateSettings);
+        */
+
 
         Context context = getApplicationContext();
         CharSequence text = "Settings updated";

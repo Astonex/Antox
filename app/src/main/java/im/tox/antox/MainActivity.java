@@ -1,44 +1,44 @@
 package im.tox.antox;
 
 import android.annotation.SuppressLint;
-import android.app.ActivityManager;
+import android.app.AlertDialog;
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.widget.SlidingPaneLayout;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.MenuItemCompat;
+import android.support.v4.widget.SlidingPaneLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.TextView;
 import android.widget.Toast;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import im.tox.jtoxcore.ToxUserStatus;
-import im.tox.antox.LeftPaneItem;
 
 /**
  * The Main Activity which is launched when the app icon is pressed in the app tray and acts as the
@@ -62,25 +62,28 @@ public class MainActivity extends ActionBarActivity {
 
 
     public SlidingPaneLayout pane;
-    private ChatFragment chat;
+    public ChatFragment chat;
     private ContactsFragment contacts;
     private IntentFilter filter;
+    private boolean tempRightPaneActive;
 
     /**
      * Stores all friend details and used by the contactsAdapter for displaying
      */
-    private String[][] friends;
-
     public String activeTitle = "Antox";
-    public String activeFriendRequestKey = null;
+
+
+    public ArrayList<String> leftPaneKeyList;
 
     ToxSingleton toxSingleton = ToxSingleton.getInstance();
+
+    public ArrayList<Friend> friendList;
+    private PaneListener paneListener;
 
     /*
      * Allows menu to be accessed from menu unrelated subroutines such as the pane opened
      */
     private Menu menu;
-    private boolean isInChat=false;
 
     private BroadcastReceiver receiver = new BroadcastReceiver() {
 
@@ -91,8 +94,8 @@ public class MainActivity extends ActionBarActivity {
             if (action != null) {
             Log.d(TAG, "action: " + action);
                 if (action == Constants.FRIEND_REQUEST) {
-                    friendRequest(intent);
-                } else if (action == Constants.UPDATE_FRIEND_REQUESTS) {
+
+                } else if (action == Constants.UPDATE_LEFT_PANE) {
                     updateLeftPane();
                 } else if (action == Constants.REJECT_FRIEND_REQUEST) {
                     updateLeftPane();
@@ -101,6 +104,12 @@ public class MainActivity extends ActionBarActivity {
                     int duration = Toast.LENGTH_SHORT;
                     Toast toast = Toast.makeText(ctx, text, duration);
                     toast.show();
+                } else if (action == Constants.UPDATE_MESSAGES) {
+                    Log.d(TAG, "UPDATE_MESSAGES, intent key = " + intent.getStringExtra("key") + ", activeFriendKey = " + toxSingleton.activeFriendKey);
+                    updateLeftPane();
+                    if (intent.getStringExtra("key").equals(toxSingleton.activeFriendKey)) {
+                        updateChat(toxSingleton.activeFriendKey);
+                    }
                 } else if (action == Constants.ACCEPT_FRIEND_REQUEST) {
                     updateLeftPane();
                     Context ctx = getApplicationContext();
@@ -108,31 +117,87 @@ public class MainActivity extends ActionBarActivity {
                     int duration = Toast.LENGTH_SHORT;
                     Toast toast = Toast.makeText(ctx, text, duration);
                     toast.show();
+                } else if (action == Constants.FRIEND_LIST) {
+
+                } else if (action == Constants.UPDATE) {
+                    updateLeftPane();
                 }
             }
         }
     };
 
+    
+    void updateChat(String key) {
+        Log.d(TAG, "updating chat");
+        //avoid changing name of pending request to "(null) !" if they are currently the active friend
+        if(toxSingleton.friendsList.getById(key)!=null
+                && toxSingleton.friendsList.getById(key).getName()!=null ){
+            AntoxDB db = new AntoxDB(this);
+            if (toxSingleton.rightPaneActive) {
+                db.markIncomingMessagesRead(key);
+            }
+            chat.updateChat(db.getMessageList(key));
+            db.close();
+            updateLeftPane();
+        }
+    };
 
-    @SuppressLint("NewApi")
+    @Override
+    protected void onNewIntent(Intent i) {
+        if (i.getAction() == Constants.SWITCH_TO_FRIEND && toxSingleton.friendsList.getById(i.getStringExtra("key")) != null) {
+            String key = i.getStringExtra("key");
+            String name = i.getStringExtra("name");
+            Fragment newFragment = new ChatFragment();
+            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+            transaction.replace(R.id.right_pane, newFragment);
+            transaction.addToBackStack(null);
+            transaction.commit();
+            toxSingleton.activeFriendKey = key;
+            toxSingleton.activeFriendRequestKey = null;
+            activeTitle = name;
+            pane.closePane();
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            setTitle(activeTitle);
+            tempRightPaneActive = true;
+            toxSingleton.rightPaneActive = true;
+            clearUselessNotifications();
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.i(TAG, "onCreate");
+        toxSingleton.activeFriendKey=null;
+        toxSingleton.activeFriendRequestKey=null;
         setContentView(R.layout.activity_main);
+
+        toxSingleton.leftPaneActive = true;
 
         /* Check if connected to the Internet */
         ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-        if (networkInfo != null && networkInfo.isConnected()) {
+        if (networkInfo != null && networkInfo.isConnected())
+        {
             // Executes in a separate thread so UI experience isn't affected
-            new DownloadDHTList().execute("http://markwinter.me/servers.php");
-        } else {
-
+           // Downloads the DHT node details
+            if(DhtNode.ipv4.size() == 0)
+                new DHTNodeDetails().execute();
+        }
+        else {
+            showAlertDialog(MainActivity.this, "No Internet Connection",
+                    "You are not connected to the Internet");
         }
 
         /* If the tox service isn't already running, start it */
         if(!isToxServiceRunning()) {
+            /* If the service wasn't running then we wouldn't have gotten callbacks for a user
+            *  going offline so default everyone to offline and just wait for callbacks.
+            */
+            AntoxDB db = new AntoxDB(getApplicationContext());
+            db.setAllOffline();
+            db.close();
+
             startToxIntent = new Intent(this, ToxService.class);
             startToxIntent.setAction(Constants.START_TOX);
             this.startService(startToxIntent);
@@ -154,7 +219,6 @@ public class MainActivity extends ActionBarActivity {
             // and give a brief description of antox
             Intent intent = new Intent(this, WelcomeActivity.class);
             startActivity(intent);
-            finish();
         }
 
         /* Load user details */
@@ -172,13 +236,14 @@ public class MainActivity extends ActionBarActivity {
         UserDetails.note = settingsPref.getString("saved_note_hint", "");
 
         pane = (SlidingPaneLayout) findViewById(R.id.slidingpane_layout);
-        pane.setPanelSlideListener(new PaneListener());
+        paneListener = new PaneListener();
+        pane.setPanelSlideListener(paneListener);
         pane.openPane();
         getSupportActionBar().setDisplayHomeAsUpEnabled(false);
         contacts = (ContactsFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_contacts);
 
-        //toxSingleton.friend_requests = new ArrayList<FriendRequest>();
         updateLeftPane();
+        onNewIntent(getIntent());
     }
 
     @Override
@@ -192,72 +257,73 @@ public class MainActivity extends ActionBarActivity {
         Log.i(TAG, "onDestroy");
         super.onDestroy();
     }
-
-    private void updateLeftPane() {
-        friends = new String[1][3];
-        friends[0][0] = "0";
-        friends[0][1] = getResources().getString(R.string.main_no_friends);
-        friends[0][2] = getResources().getString(R.string.main_try_adding);
-
-        /* Go through status strings and set appropriate resource image */
-        Friend friends_list[] = new Friend[friends.length];
-
-        for (int i = 0; i < friends.length; i++) {
-            if (friends[i][0].equals("1"))
-                friends_list[i] = new Friend(R.drawable.ic_status_online,
-                        friends[i][1], friends[i][2]);
-            else if (friends[i][0].equals("0"))
-                friends_list[i] = new Friend(R.drawable.ic_status_offline,
-                        friends[i][1], friends[i][2]);
-            else if (friends[i][0].equals("2"))
-                friends_list[i] = new Friend(R.drawable.ic_status_away,
-                        friends[i][1], friends[i][2]);
-            else if (friends[i][0].equals("3"))
-                friends_list[i] = new Friend(R.drawable.ic_status_busy,
-                        friends[i][1], friends[i][2]);
+    private Message mostRecentMessage(String key, ArrayList<Message> messages) {
+        for (int i=0; i<messages.size(); i++) {
+            if (key.equals(messages.get(i).key)) {
+                return messages.get(i);
+            }
         }
+        return new Message(-1, key, "", false, true, true, new Timestamp(0,0,0,0,0,0,0));
+    }
+
+    private int countUnreadMessages(String key, ArrayList<Message> messages) {
+        int counter = 0;
+        Message m;
+        for (int i=0; i<messages.size(); i++) {
+            m = messages.get(i);
+            if (m.key.equals(key) && !m.is_outgoing) {
+                if (!m.has_been_read) {
+                    counter += 1;
+                } else {
+                    return counter;
+                }
+            }
+        }
+        return counter;
+    }
+    public void updateLeftPane() {
+
+        AntoxDB antoxDB = new AntoxDB(this);
+
+        friendList = antoxDB.getFriendList();
+        ArrayList<Message> messageList = antoxDB.getMessageList("");
+
+        Friend friends_list[] = new Friend[friendList.size()];
+        friends_list = friendList.toArray(friends_list);
 
         FriendRequest friend_requests_list[] = new FriendRequest[toxSingleton.friend_requests.size()];
         friend_requests_list = toxSingleton.friend_requests.toArray(friend_requests_list);
 
         leftPaneAdapter = new LeftPaneAdapter(this);
 
+        leftPaneKeyList = new ArrayList<String>();
+
+        Message msg;
+
         if (friend_requests_list.length > 0) {
             LeftPaneItem friend_request_header = new LeftPaneItem(Constants.TYPE_HEADER, getResources().getString(R.string.main_friend_requests), null, 0);
             leftPaneAdapter.addItem(friend_request_header);
+            leftPaneKeyList.add("");
             for (int i = 0; i < friend_requests_list.length; i++) {
                 LeftPaneItem friend_request = new LeftPaneItem(Constants.TYPE_FRIEND_REQUEST, friend_requests_list[i].requestKey, friend_requests_list[i].requestMessage, 0);
                 leftPaneAdapter.addItem(friend_request);
+                leftPaneKeyList.add(friend_requests_list[i].requestKey);
             }
         }
         if (friends_list.length > 0) {
             LeftPaneItem friends_header = new LeftPaneItem(Constants.TYPE_HEADER, getResources().getString(R.string.main_friends), null, 0);
             leftPaneAdapter.addItem(friends_header);
+            leftPaneKeyList.add("");
             for (int i = 0; i < friends_list.length; i++) {
-                LeftPaneItem friend = new LeftPaneItem(Constants.TYPE_CONTACT, friends_list[i].friendName, friends_list[i].friendStatus, friends_list[i].icon);
+                msg = mostRecentMessage(friends_list[i].friendKey, messageList);
+                LeftPaneItem friend = new LeftPaneItem(Constants.TYPE_CONTACT, friends_list[i].friendName, msg.message, friends_list[i].icon, countUnreadMessages(friends_list[i].friendKey, messageList), msg.timestamp);
                 leftPaneAdapter.addItem(friend);
+                leftPaneKeyList.add(friends_list[i].friendKey);
             }
         }
 
+        antoxDB.close();
         contacts.updateLeftPane();
-    }
-
-    public void rejectFriendRequest(View view) {
-        getSupportFragmentManager().popBackStack();
-        pane.openPane();
-        Intent rejectRequestIntent = new Intent(this, ToxService.class);
-        rejectRequestIntent.setAction(Constants.REJECT_FRIEND_REQUEST);
-        rejectRequestIntent.putExtra("key", activeFriendRequestKey);
-        this.startService(rejectRequestIntent);
-
-    }
-    public void acceptFriendRequest(View view) {
-        getSupportFragmentManager().popBackStack();
-        pane.openPane();
-        Intent acceptRequestIntent = new Intent(this, ToxService.class);
-        acceptRequestIntent.setAction(Constants.ACCEPT_FRIEND_REQUEST);
-        acceptRequestIntent.putExtra("key", activeFriendRequestKey);
-        this.startService(acceptRequestIntent);
     }
 
     /**
@@ -278,7 +344,15 @@ public class MainActivity extends ActionBarActivity {
         Intent intent = new Intent(this, ProfileActivity.class);
         startActivity(intent);
     }
-
+    /**
+     * Starts a new intent to open the AboutActivity class
+     *
+     * @see im.tox.antox.AboutActivity
+     */
+    private void openAbout() {
+        Intent intent = new Intent(this, AboutActivity.class);
+        startActivity(intent);
+    }
     /**
      * Starts a new intent to open the AddFriendActivity class
      *
@@ -286,21 +360,34 @@ public class MainActivity extends ActionBarActivity {
      */
     private void addFriend() {
         Intent intent = new Intent(this, AddFriendActivity.class);
-        startActivity(intent);
+        startActivityForResult(intent, Constants.ADD_FRIEND_REQUEST_CODE);
+    }
+
+    private void clearUselessNotifications () {
+        if (toxSingleton.rightPaneActive && toxSingleton.activeFriendKey != null
+                && toxSingleton.friendsList.all().size() > 0) {
+            AntoxFriend friend = toxSingleton.friendsList.getById(toxSingleton.activeFriendKey);
+            toxSingleton.mNotificationManager.cancel(friend.getFriendnumber());
+        }
     }
 
     @Override
     public void onResume() {
         Log.i(TAG, "onResume");
+        toxSingleton.rightPaneActive = tempRightPaneActive;
         filter = new IntentFilter(Constants.BROADCAST_ACTION);
         LocalBroadcastManager.getInstance(this).registerReceiver(receiver, filter);
+        clearUselessNotifications();
         super.onResume();
     }
 
     @Override
     public void onPause() {
         Log.i(TAG, "onPause");
+        tempRightPaneActive = toxSingleton.rightPaneActive;
+        toxSingleton.rightPaneActive = false;
         LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
+        toxSingleton.leftPaneActive = false;
         super.onPause();
     }
 
@@ -319,8 +406,11 @@ public class MainActivity extends ActionBarActivity {
             case R.id.action_profile:
                 openProfile();
                 return true;
+            case R.id.action_about:
+                openAbout();
+                return true;
             case R.id.add_friend:
-                if(isInChat)
+                if(toxSingleton.rightPaneActive)
                     addFriendToGroup();
                 else
                     addFriend();
@@ -345,8 +435,11 @@ public class MainActivity extends ActionBarActivity {
         Log.v("Add friend to group method","To implement");
     }
 
+
+    @SuppressLint("NewApi")
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         final MenuItem menuItem = menu.findItem(R.id.search_friend);
@@ -373,6 +466,7 @@ public class MainActivity extends ActionBarActivity {
                     @Override
                     public void onFocusChange(View v, boolean hasFocus) {
                         MenuItemCompat.collapseActionView(menuItem);
+
                     }
                 });
         //the class menu property is now the initialized menu
@@ -388,100 +482,82 @@ public class MainActivity extends ActionBarActivity {
         return toxSingleton.toxStarted;
     }
 
-    private class DownloadDHTList extends AsyncTask<String, Void, String> {
+    public void showAlertDialog(Context context, String title, String message) {
+        AlertDialog alertDialog = new AlertDialog.Builder(context).create();
+        alertDialog.setTitle(title);
+        alertDialog.setMessage(message);
+        alertDialog.setIcon(R.drawable.ic_launcher);
+        alertDialog.setButton("OK", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+            }
+        });
+        alertDialog.show();
+    }
+
+
+    // Downloads the the first working DHT node
+    private class DHTNodeDetails extends AsyncTask<Void, Void, Void> {
+       String nodeDetails[] = new String[7];
+
+
+
         @Override
-        protected String doInBackground(String... urls) {
-
-            // params comes from the execute() call: params[0] is the url.
+        protected Void doInBackground(Void... params) {
             try {
-                return downloadUrl(urls[0]);
+                // Connect to the web site
+                Document document = Jsoup.connect("http://wiki.tox.im/Nodes").get();
+                Elements nodeRows = document.getElementsByTag("tr");
+
+                for(Element nodeRow : nodeRows)
+                {
+                    Elements nodeElements = nodeRow.getElementsByTag("td");
+                    int c = 0;
+                    for(Element nodeElement : nodeElements)
+                         nodeDetails[c++]=nodeElement.text();
+
+
+                    if(nodeDetails[6]!=null && nodeDetails[6].equals("WORK"))
+                    {
+                        DhtNode.ipv4.add(nodeDetails[0]);
+                        DhtNode.ipv6.add(nodeDetails[1]);
+                        DhtNode.port.add(nodeDetails[2]);
+                        DhtNode.key.add(nodeDetails[3]);
+                        DhtNode.owner.add(nodeDetails[4]);
+                        DhtNode.location.add(nodeDetails[5]);
+                    }
+                }
             } catch (IOException e) {
-                return "Unable to retrieve web page. URL may be invalid.";
+                e.printStackTrace();
             }
+            return null;
         }
 
-        /**
-         * Downloads the data and will return a string of it
-         *
-         * @param myurl
-         * @return
-         * @throws IOException
-         */
-        private String downloadUrl(String myurl) throws IOException {
-            InputStream is = null;
-            // Only display the first 500 characters of the retrieved
-            // web page content.
-            int len = 160;
-
+        @Override
+        protected void onPostExecute(Void result)
+        {
             try {
-                URL url = new URL(myurl);
-                HttpURLConnection conn = (HttpURLConnection) url
-                        .openConnection();
-                conn.setReadTimeout(10000 /* milliseconds */);
-                conn.setConnectTimeout(15000 /* milliseconds */);
-                conn.setRequestMethod("GET");
-                conn.setDoInput(true);
-                // Starts the query
-                conn.connect();
-                is = conn.getInputStream();
-
-                // Convert the InputStream into a string
-
-                return readIt(is, len);
-
-                // Makes sure that the InputStream is closed after the app is
-                // finished using it.
-            } finally {
-                if (is != null) {
-                    is.close();
-                }
+                //Checking the details
+                System.out.println("node details:");
+                System.out.println(DhtNode.ipv4);
+                System.out.println(DhtNode.ipv6);
+                System.out.println(DhtNode.port);
+                System.out.println(DhtNode.key);
+                System.out.println(DhtNode.owner);
+                System.out.println(DhtNode.location);
+            }catch (NullPointerException e){
+                Toast.makeText(MainActivity.this,"Error Downloading Nodes List",Toast.LENGTH_SHORT).show();
             }
-        }
-
-        /**
-         * Take the Input Stream and convert it from a char[] buffer to a String
-         *
-         * @param stream
-         * @param len
-         * @return
-         * @throws IOException
-         * @throws UnsupportedEncodingException
-         */
-        public String readIt(InputStream stream, int len) throws IOException {
-            Reader reader;
-            reader = new InputStreamReader(stream, "UTF-8");
-            char[] buffer = new char[len];
-            reader.read(buffer);
-            return new String(buffer);
-        }
-
-        /**
-         * Will take the return of the AsyncTask to be used for operations. Specifically, it will
-         * take the result of downloading the JSON file, parse it, and add it to the DHT spinner
-         *
-         * @param result
-         */
-        protected void onPostExecute(String result) {
-            //Parse the page and store it so it can be used to automatically connect to a DHT
-            String[] dhtDetails = new String[7];
-
-            int posOfFirst = 1;
-            int counter = 0;
-            for(int i = 2; i < result.length() - 2; i++) {
-                if(result.charAt(i) == '"') {
-                    dhtDetails[counter] = result.substring(posOfFirst+1, i);
-                    posOfFirst = i + 2;
-                    counter++;
-                    i = i+3;
-                }
+            /**
+             * There is a chance that downloading finishes later than the bootstrapping call in the
+             * ToxService, because both are in separate threads. In that case to make sure the nodes
+             * are bootstrapped we restart the ToxService
+             */
+            if(!DhtNode.connected)
+            {
+                Intent restart = new Intent(getApplicationContext(), ToxService.class);
+                restart.setAction(Constants.START_TOX);
+                getApplicationContext().startService(restart);
             }
-
-            DhtNode.ipv4 = dhtDetails[0];
-            DhtNode.ipv6 = dhtDetails[1];
-            DhtNode.port = dhtDetails[2];
-            DhtNode.key = dhtDetails[3];
-            DhtNode.owner = dhtDetails[4];
-            DhtNode.location = dhtDetails[5];
         }
     }
 
@@ -504,29 +580,38 @@ public class MainActivity extends ActionBarActivity {
             finish();
         }
     }
-
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(requestCode==Constants.ADD_FRIEND_REQUEST_CODE && resultCode==RESULT_OK){
+            updateLeftPane();
+        }
+    }
     private class PaneListener implements SlidingPaneLayout.PanelSlideListener {
 
         @Override
         public void onPanelClosed(View view) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             setTitle(activeTitle);
-            MenuItem af = (MenuItem)menu.findItem(R.id.add_friend);
+            MenuItem af = menu.findItem(R.id.add_friend);
             af.setIcon(R.drawable.ic_action_add_group);
-            isInChat=true;
+            af.setTitle(R.string.add_to_group);
+            toxSingleton.rightPaneActive = true;
             System.out.println("Panel closed");
+            toxSingleton.leftPaneActive = false;
+            clearUselessNotifications();
         }
 
         @Override
         public void onPanelOpened(View view) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(false);
             setTitle(R.string.app_name);
-            MenuItem af = (MenuItem)menu.findItem(R.id.add_friend);
+            MenuItem af = menu.findItem(R.id.add_friend);
             af.setIcon(R.drawable.ic_action_add_person);
-            isInChat=false;
+            af.setTitle(R.string.add_friend);
+            toxSingleton.rightPaneActive =false;
             InputMethodManager imm = (InputMethodManager)getSystemService(
                     Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+            /* This is causing a null pointer exception */
+            //imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
             System.out.println("Panel opened");
         }
 

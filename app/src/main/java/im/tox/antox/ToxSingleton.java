@@ -1,8 +1,11 @@
 package im.tox.antox;
 
+import android.app.NotificationManager;
+import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
+import java.io.File;
 import java.util.ArrayList;
 
 import im.tox.jtoxcore.JTox;
@@ -20,9 +23,17 @@ public class ToxSingleton {
     private AntoxFriendList antoxFriendList;
     public CallbackHandler callbackHandler;
     public ArrayList<FriendRequest> friend_requests = new ArrayList<FriendRequest>();
-    FriendRequestDbHelper mDbHelper;
+    public AntoxDB mDbHelper;
     SQLiteDatabase db;
     public boolean toxStarted = false;
+    public AntoxFriendList friendsList;
+    public String activeFriendRequestKey = null;
+    public String activeFriendKey = null;
+    public boolean rightPaneActive = false;
+    public boolean leftPaneActive = false;
+    public NotificationManager mNotificationManager;
+    public ToxDataFile dataFile;
+    public File qrFile;
 
     private static volatile ToxSingleton instance = null;
 
@@ -30,12 +41,15 @@ public class ToxSingleton {
 
     }
 
-    public void initTox() {
+    public void initTox(Context ctx) {
+        friendsList = new AntoxFriendList();
         toxStarted = true;
         antoxFriendList = new AntoxFriendList();
         callbackHandler = new CallbackHandler(antoxFriendList);
+
         try {
-            ToxDataFile dataFile = new ToxDataFile();
+            qrFile = ctx.getFileStreamPath("userkey_qr.png");
+            dataFile = new ToxDataFile(ctx);
 
             /* Choose appropriate constructor depending on if data file exists */
             if(!dataFile.doesFileExist()) {
@@ -43,10 +57,7 @@ public class ToxSingleton {
                 jTox = new JTox(antoxFriendList, callbackHandler);
             } else {
                 Log.d(TAG, "Data file has been found");
-                if(dataFile.isExternalStorageReadable())
-                    jTox = new JTox(dataFile.loadFile(), antoxFriendList, callbackHandler);
-                else
-                    Log.d(TAG, "Data file wasn't available for reading");
+                jTox = new JTox(dataFile.loadFile(), antoxFriendList, callbackHandler);
             }
 
             if(UserDetails.username == null)
@@ -62,8 +73,7 @@ public class ToxSingleton {
             jTox.setUserStatus(UserDetails.status);
 
             /* Save data file */
-            if(dataFile.isExternalStorageWritable())
-                dataFile.saveFile(jTox.save());
+            dataFile.saveFile(jTox.save());
 
         } catch (ToxException e) {
             e.printStackTrace();

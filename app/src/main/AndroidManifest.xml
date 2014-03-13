@@ -22,8 +22,9 @@
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
+        android:logo="@drawable/ic_actionbar"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme">
+        android:theme="@style/CustomActionBarTheme">
 
         <service
             android:name=".ToxService"
@@ -54,13 +55,21 @@
                 android:value="im.tox.antox.MainActivity"/>
         </activity>
         <activity
-            android:name="im.tox.antox.WelcomeActivity"
-            android:label="@string/title_activity_welcome"
+            android:name="im.tox.antox.AboutActivity"
+            android:label="@string/title_activity_about"
             android:parentActivityName="im.tox.antox.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.tox.antox.MainActivity"/>
+                android:value="im.tox.antox.MainActivity"/>
         </activity>
+        <activity
+            android:name="im.tox.antox.WelcomeActivity"
+            android:label="@string/title_activity_welcome" >
+            <!--android:parentActivityName="im.tox.antox.MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="im.tox.antox.MainActivity"/>-->
+    </activity>
         <activity
             android:name="im.tox.antox.AddFriendActivity"
             android:label="@string/title_activity_add_friend"

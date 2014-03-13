@@ -1,7 +1,9 @@
 package im.tox.antox;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
@@ -11,6 +13,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import im.tox.jtoxcore.ToxException;
 
 
 /**
@@ -26,6 +33,9 @@ public class ContactsFragment extends Fragment {
      */
     private LeftPaneAdapter leftPaneAdapter;
 
+    ToxSingleton toxSingleton = ToxSingleton.getInstance();
+
+
 
     public ContactsFragment() {
         main_act = (MainActivity) getActivity();
@@ -38,7 +48,8 @@ public class ContactsFragment extends Fragment {
         transaction.replace(R.id.right_pane, newFragment);
         transaction.addToBackStack(null);
         transaction.commit();
-        main_act.activeFriendRequestKey = key;
+        toxSingleton.activeFriendRequestKey = key;
+        toxSingleton.activeFriendKey = null;
     }
 
     public void onChangeContact(int position, String name) {
@@ -47,8 +58,14 @@ public class ContactsFragment extends Fragment {
         transaction.replace(R.id.right_pane, newFragment);
         transaction.addToBackStack(null);
         transaction.commit();
-        main_act.activeFriendRequestKey = null;
+        toxSingleton.activeFriendKey = main_act.leftPaneKeyList.get(position);
+        toxSingleton.activeFriendRequestKey = null;
+        main_act.activeTitle = name;
+        main_act.pane.closePane();
+        toxSingleton.rightPaneActive = true;
+        main_act.updateLeftPane();
     }
+
 
     public void updateLeftPane() {
         leftPaneAdapter = main_act.leftPaneAdapter;
@@ -81,17 +98,17 @@ public class ContactsFragment extends Fragment {
                     public void onItemClick(AdapterView<?> parent, View view, int position,
                                             long id) {
                         LeftPaneItem item = (LeftPaneItem) parent.getAdapter().getItem(position);
-                        int type = item.viewType();
+                        int type = item.viewType;
                         if (type == Constants.TYPE_CONTACT) {
-                            onChangeContact(position, item.first());
-                            main_act.activeTitle = item.first();
-                            main_act.pane.closePane();
+                            onChangeContact(position, item.first);
                         } else if (type == Constants.TYPE_FRIEND_REQUEST) {
-                            String key = item.first();
-                            String message = item.second();
+
+                            String key = item.first;
+                            String message = item.second;
                             onChangeFriendRequest(position, key, message);
                             main_act.activeTitle = "Friend Request";
                             main_act.pane.closePane();
+                            toxSingleton.rightPaneActive = true;
                         }
                     }
                 });
@@ -103,7 +120,7 @@ public class ContactsFragment extends Fragment {
                 final LeftPaneItem item = (LeftPaneItem) parent.getAdapter().getItem(index);
                 AlertDialog.Builder builder = new AlertDialog.Builder(main_act);
                 boolean isGroupChat=false;
-                final boolean isFriendRequest = item.viewType()==Constants.TYPE_FRIEND_REQUEST;
+                final boolean isFriendRequest = item.viewType==Constants.TYPE_FRIEND_REQUEST;
                 final CharSequence items[];
                 if(isFriendRequest){
                     items= new CharSequence[]{getResources().getString(R.string.friendrequest_accept),
@@ -121,14 +138,31 @@ public class ContactsFragment extends Fragment {
                         .setItems(items, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int index) {
                                 Log.d("picked", "" + items[index]);
+                                //item.first equals the key
                                 if(isFriendRequest){
                                     switch (index){
                                         case 0:
-                                            Log.v("To implement", "" + items[0]);
-                                            //acceptRequest(item.first); item.first equals the key
+                                            AntoxDB db = new AntoxDB(getActivity().getApplicationContext());
+                                            db.addFriend(item.first, "Friend Accepted");
+                                            Intent acceptRequestIntent = new Intent(getActivity(), ToxService.class);
+                                            acceptRequestIntent.setAction(Constants.ACCEPT_FRIEND_REQUEST);
+                                            acceptRequestIntent.putExtra("key", item.first);
+                                            main_act.startService(acceptRequestIntent);
+                                            main_act.updateLeftPane();
                                             break;
                                         case 1:
-                                            Log.v("To implement", "" + items[1]);
+                                            if (!toxSingleton.db.isOpen())
+                                                toxSingleton.db = toxSingleton.mDbHelper.getWritableDatabase();
+
+                                            toxSingleton.db.delete(Constants.TABLE_FRIEND_REQUEST,
+                                                    Constants.COLUMN_NAME_KEY + "='" + item.first + "'",
+                                                    null);
+                                            toxSingleton.db.close();
+                                            Intent rejectRequestIntent = new Intent(main_act, ToxService.class);
+                                            rejectRequestIntent.setAction(Constants.REJECT_FRIEND_REQUEST);
+                                            rejectRequestIntent.putExtra("key", item.first);
+                                            main_act.startService(rejectRequestIntent);
+                                            main_act.updateLeftPane();
                                             //rejectRequest(item.first);
                                             break;
                                     }
@@ -138,7 +172,20 @@ public class ContactsFragment extends Fragment {
                                             Log.v("To implement", "" + items[0]);
                                             break;
                                         case 1:
-                                            Log.v("To implement", "" + items[1]);
+                                            ArrayList<Friend> tmp = ((MainActivity)getActivity()).friendList;
+                                            //Get friend key
+                                            String key = "";
+                                            for(int i = 0; i < tmp.size(); i++) {
+                                                if(item.first.equals(tmp.get(i).friendName)) {
+                                                    key = tmp.get(i).friendKey;
+                                                    break;
+                                                }
+                                            }
+                                            //Delete friend
+                                            Log.d("ContactsFragment","Delete Friend selected");
+                                            if (!key.equals("")) {
+                                                showAlertDialog(getActivity(),key);
+                                            }
                                             break;
                                         case 2:
                                             Log.v("To implement", "" + items[2]);
@@ -149,7 +196,7 @@ public class ContactsFragment extends Fragment {
                             }
                         });
                 AlertDialog alert = builder.create();
-                if(item.viewType()!=Constants.TYPE_HEADER){
+                if(item.viewType!=Constants.TYPE_HEADER){
                     alert.show();
                 }
                 return true;
@@ -157,5 +204,42 @@ public class ContactsFragment extends Fragment {
         });
 
         return rootView;
+    }
+
+    public void showAlertDialog(Context context, String fkey) {
+        final String key= fkey;
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setMessage("Do you want to clear the saved chat logs as well?")
+                .setCancelable(false)
+                .setPositiveButton("Yes",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog,
+                                                int id) {
+                                AntoxDB db = new AntoxDB(getActivity());
+                                db.deleteChat(key);
+                                db.deleteFriend(key);
+                                db.close();
+                                updateLeftPane();
+                                Intent intent = new Intent(getActivity(), ToxService.class);
+                                intent.setAction(Constants.DELETE_FRIEND_AND_CHAT);
+                                intent.putExtra("key", key);
+                                getActivity().startService(intent);
+                            }
+                        })
+                .setNegativeButton("No",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog,
+                                                int id) {
+                                AntoxDB db = new AntoxDB(getActivity());
+                                db.deleteFriend(key);
+                                db.close();
+                                updateLeftPane();
+                                Intent intent = new Intent(getActivity(), ToxService.class);
+                                intent.setAction(Constants.DELETE_FRIEND);
+                                intent.putExtra("key", key);
+                                getActivity().startService(intent);
+                            }
+                        });
+        builder.show();
     }
 }

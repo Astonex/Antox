@@ -28,6 +28,7 @@ import com.google.zxing.WriterException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 
 import im.tox.QR.Contents;
 import im.tox.QR.QRCodeEncode;
@@ -61,7 +62,7 @@ public class ProfileActivity extends ActionBarActivity {
         };
 
         ArrayAdapter<String> statusAdapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_spinner_item, statusItems);
+                R.layout.simple_spinner_item, statusItems);
         statusSpinner.setAdapter(statusAdapter);
 
 		/* Get saved preferences */
@@ -76,14 +77,13 @@ public class ProfileActivity extends ActionBarActivity {
          * adds onClickListener to the ImageButton to add share the QR
           * */
         ImageButton qrCode = (ImageButton) findViewById(R.id.qr_code);
+
         File file = new File(Environment.getExternalStorageDirectory().getPath()+"/Antox/");
         if(!file.exists()){
             file.mkdirs();
         }
         file = new File(Environment.getExternalStorageDirectory().getPath()+"/Antox/userkey_qr.png");
-        if(!file.exists()){
-            generateQR(pref.getString("user_key", ""));
-        }
+        generateQR(pref.getString("user_key", ""));
         Bitmap bmp = BitmapFactory.decodeFile(file.getAbsolutePath());
         qrCode.setImageBitmap(bmp);
         qrCode.setOnClickListener(new View.OnClickListener() {
@@ -122,18 +122,21 @@ public class ProfileActivity extends ActionBarActivity {
     * generates the QR using the ZXING library (core.jar in libs folder)
      */
     private void generateQR(String userKey) {
-        String qrData = "tox://"+userKey;
-        int qrCodeSize= 500;
+        String qrData = "tox://" + userKey;
+        int qrCodeSize = 500;
         QRCodeEncode qrCodeEncoder = new QRCodeEncode(qrData, null,
                 Contents.Type.TEXT, BarcodeFormat.QR_CODE.toString(), qrCodeSize);
         FileOutputStream out;
         try {
             Bitmap bitmap = qrCodeEncoder.encodeAsBitmap();
             out = new FileOutputStream(Environment.getExternalStorageDirectory().getPath()+"/antox/userkey_qr.png");
-            bitmap.compress(Bitmap.CompressFormat.PNG,90,out);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 90, out);
+            out.close();
         } catch (WriterException e) {
             e.printStackTrace();
         } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -195,7 +198,7 @@ public class ProfileActivity extends ActionBarActivity {
         this.startService(updateSettings);
 
         Context context = getApplicationContext();
-        CharSequence text = getResources().getString(R.string.settings_updated);
+        CharSequence text = getResources().getString(R.string.profile_updated);
         int duration = Toast.LENGTH_SHORT;
         Toast toast = Toast.makeText(context, text, duration);
         toast.show();

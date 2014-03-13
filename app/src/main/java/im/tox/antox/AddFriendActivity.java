@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -30,16 +31,6 @@ public class AddFriendActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_friend);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-        //scanQR button to call the barcode reader app
-        Button scanQR = (Button)findViewById(R.id.scanFriendQR);
-        scanQR.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                scanIntent();
-            }
-        });
-
         EditText friendID = (EditText) findViewById(R.id.addfriend_key);
         Intent intentURI = getIntent();
         Uri uri;
@@ -71,19 +62,35 @@ public class AddFriendActivity extends ActionBarActivity {
 
         /*validates key*/
         if(validateFriendKey(friendID.getText().toString())){
+            String message = friendMessage.getText().toString();
+
+            String[] friendData = { friendID.getText().toString(), message};
+
+            AntoxDB db = new AntoxDB(getApplicationContext());
+            if(!db.doesFriendExist(friendID.getText().toString())) {
+                Intent addFriend = new Intent(this, ToxService.class);
+                addFriend.setAction(Constants.ADD_FRIEND);
+                addFriend.putExtra("friendData", friendData);
+                this.startService(addFriend);
+                db.addFriend(friendID.getText().toString(), "Friend Request Sent");
+            } else {
+                toast = Toast.makeText(context, "Friend already exists", Toast.LENGTH_SHORT);
+            }
+            db.close();
+
             toast.show();
+
         }else{
             toast = Toast.makeText(context, getResources().getString(R.string.invalid_friend_ID), Toast.LENGTH_SHORT);
             toast.show();
             return;
         }
 
-        String[] friendData = { friendID.getText().toString(), friendMessage.getText().toString()};
-
-        Intent addFriend = new Intent(this, ToxService.class);
-        addFriend.setAction(Constants.ADD_FRIEND);
-        addFriend.putExtra("friendData", friendData);
-        this.startService(addFriend);
+        Intent update = new Intent(Constants.BROADCAST_ACTION);
+        update.putExtra("action", Constants.UPDATE);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(update);
+        Intent i = new Intent();
+        setResult(RESULT_OK,i);
 
         // Close activity
         finish();
@@ -141,6 +148,10 @@ public class AddFriendActivity extends ActionBarActivity {
                 //
                 NavUtils.navigateUpFromSameTask(this);
                 return true;
+            //scanQR button to call the barcode reader app
+            case R.id.scanFriend:
+                scanIntent();
+                break;
         }
         return super.onOptionsItemSelected(item);
     }

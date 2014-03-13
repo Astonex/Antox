@@ -1,14 +1,19 @@
 package im.tox.antox;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 
@@ -18,8 +23,7 @@ import im.tox.antox.callbacks.AntoxOnMessageCallback;
  * Created by ollie on 28/02/14.
  */
 public class ChatFragment extends Fragment {
-
-
+    private static String TAG = "im.tox.antox.ChatFragment";
     public static String ARG_CONTACT_NUMBER = "contact_number";
     private ListView chatListView;
     private int counter = 0;
@@ -27,6 +31,9 @@ public class ChatFragment extends Fragment {
     private ChatMessages chat_messages[] = new ChatMessages[counter];
     private ChatMessagesAdapter adapter;
     private EditText messageBox;
+    private MainActivity main_act;
+    ToxSingleton toxSingleton = ToxSingleton.getInstance();
+
 
     public ChatFragment() {
 
@@ -38,28 +45,13 @@ public class ChatFragment extends Fragment {
         if(messageBox.getText().toString().length()==0){
             return;
         }
-        EditText tmp = (EditText) getView().findViewById(R.id.yourMessage);
-
-        ChatMessages new_chat_messages[] = new ChatMessages[chat_messages.length+1];
-
-        System.arraycopy(chat_messages,0,new_chat_messages,0,chat_messages.length);
-
-        chat_messages = new_chat_messages;
-
-        SimpleDateFormat time = new SimpleDateFormat("HH:mm");
-
-        chat_messages[counter] = new ChatMessages(tmp.getText().toString(),
-                time.format(new Date()), true);
-
-        adapter = new ChatMessagesAdapter(getActivity(),
-                R.layout.chat_message_row, chat_messages);
-
-
-        chatListView.setAdapter(adapter);
-
-        tmp.setText("");
-        counter++;
-        chatListView.setSelection(adapter.getCount() - 1);
+        EditText message = (EditText) getView().findViewById(R.id.yourMessage);
+        Intent intent = new Intent(main_act, ToxService.class);
+        intent.setAction(Constants.SEND_MESSAGE);
+        intent.putExtra("message", message.getText().toString());
+        intent.putExtra("key", toxSingleton.activeFriendKey);
+        message.setText("");
+        getActivity().startService(intent);
     }
 
 
@@ -69,6 +61,18 @@ public class ChatFragment extends Fragment {
         }
     }
 
+    public void updateChat(ArrayList<Message> messages) {
+        Log.d(TAG, "updating chat");
+        Log.d(TAG, "chat message size = " + messages.size());
+        ChatMessages data[] = new ChatMessages[messages.size()];
+        for (int i = 0; i<messages.size(); i++) {
+            data[i] = new ChatMessages(messages.get(i).message, messages.get(i).timestamp.toString(), messages.get(i).is_outgoing);
+        }
+        adapter = new ChatMessagesAdapter(getActivity(), R.layout.chat_message_row, data);
+        chatListView.setAdapter(adapter);
+        chatListView.setSelection(adapter.getCount() - 1);
+    }
+
 
 
     @Override
@@ -76,10 +80,10 @@ public class ChatFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_chat, container, false);
 
-        adapter = new ChatMessagesAdapter(getActivity(),
-                R.layout.chat_message_row, chat_messages);
+        adapter = new ChatMessagesAdapter(getActivity(), R.layout.chat_message_row, new ChatMessages[0]);
         chatListView = (ListView) rootView.findViewById(R.id.chatMessages);
         chatListView.setAdapter(adapter);
+
         messageBox = (EditText) rootView.findViewById(R.id.yourMessage);
         messageBox.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
@@ -95,6 +99,22 @@ public class ChatFragment extends Fragment {
                 sendMessage();
             }
         });
+
+        main_act = (MainActivity) getActivity();
+        main_act.chat = this;
+        main_act.updateChat(toxSingleton.activeFriendKey);
+
+        /* If active users name contains (!) then remove it *//*
+        if(toxSingleton.activeFriendKey != null && toxSingleton.friendsList != null
+                && toxSingleton.friendsList.all().size() > 0) {
+            if (toxSingleton.friendsList.getById(toxSingleton.activeFriendKey).getName().contains(("(!)"))) {
+                AntoxDB db = new AntoxDB(main_act.getApplicationContext());
+                String name = toxSingleton.friendsList.getById(toxSingleton.activeFriendKey).getName();
+                db.updateFriendName(toxSingleton.activeFriendKey, name.substring(0, name.indexOf("(")));
+                db.close();
+            }
+        }*/
+
 
         return rootView;
     }
