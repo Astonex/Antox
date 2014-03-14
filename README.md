@@ -19,6 +19,7 @@ Antox is an Android client for Tox. It aims to bring the full multimedia support
 | Motorola | Moto G                | Android 4.4.2            |
 | LG       | Nexus 5               | Android 4.4.2            |
 | HTC      | One                   | Android 4.4.2            |
+| Samsung  | Galaxy SL             | Android 4.4.2 CyanogenMod|
 
 ###Getting Started With Antox
 - Download https://developer.android.com/sdk/installing/studio.html
