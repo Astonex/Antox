@@ -14,6 +14,38 @@
         tools:context=".ProfileActivity">
 
         <TextView
+            android:paddingBottom="5dp"
+            android:id="@+id/settings_user_avatar"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:text="@string/settings_user_avatar" />
+
+        <LinearLayout
+
+            android:background="@drawable/ic_button_one"
+            android:clickable="true"
+            android:id="@+id/avatar_image_layout"
+            android:focusable="true"
+            android:layout_width="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_height="wrap_content">
+
+            <ImageButton
+
+                android:clickable="false"
+                android:layout_width="wrap_content"
+                android:focusable="false"
+                android:background="@drawable/ic_user_avatar"
+                android:layout_height="wrap_content"
+                android:id="@+id/avatar_image"
+                />
+
+            </LinearLayout>
+
+        <TextView
+            android:paddingTop="5dp"
             android:id="@+id/settings_user_key_title"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
