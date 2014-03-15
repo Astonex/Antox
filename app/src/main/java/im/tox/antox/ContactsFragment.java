@@ -15,9 +15,6 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 import java.util.ArrayList;
-import java.util.List;
-
-import im.tox.jtoxcore.ToxException;
 
 
 /**
@@ -43,27 +40,23 @@ public class ContactsFragment extends Fragment {
     }
 
     public void onChangeFriendRequest(int position, String key, String message) {
+        toxSingleton.activeFriendRequestKey = key;
+        toxSingleton.activeFriendKey = null;
         Fragment newFragment = new FriendRequestFragment(key, message);
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
         transaction.replace(R.id.right_pane, newFragment);
         transaction.addToBackStack(null);
         transaction.commit();
-        toxSingleton.activeFriendRequestKey = key;
-        toxSingleton.activeFriendKey = null;
     }
 
-    public void onChangeContact(int position, String name) {
-        Fragment newFragment = new ChatFragment();
+    public void onChangeContact(int position) {
+        toxSingleton.activeFriendKey = main_act.leftPaneKeyList.get(position);
+        toxSingleton.activeFriendRequestKey = null;
+        ChatFragment newFragment = new ChatFragment();
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
         transaction.replace(R.id.right_pane, newFragment);
         transaction.addToBackStack(null);
         transaction.commit();
-        toxSingleton.activeFriendKey = main_act.leftPaneKeyList.get(position);
-        toxSingleton.activeFriendRequestKey = null;
-        main_act.activeTitle = name;
-        main_act.pane.closePane();
-        toxSingleton.rightPaneActive = true;
-        main_act.updateLeftPane();
     }
 
 
@@ -100,13 +93,13 @@ public class ContactsFragment extends Fragment {
                         LeftPaneItem item = (LeftPaneItem) parent.getAdapter().getItem(position);
                         int type = item.viewType;
                         if (type == Constants.TYPE_CONTACT) {
-                            onChangeContact(position, item.first);
+                            onChangeContact(position);
                         } else if (type == Constants.TYPE_FRIEND_REQUEST) {
 
                             String key = item.first;
                             String message = item.second;
                             onChangeFriendRequest(position, key, message);
-                            main_act.activeTitle = "Friend Request";
+                            main_act.activeTitle = main_act.getString(R.string.friendrequest);
                             main_act.pane.closePane();
                             toxSingleton.rightPaneActive = true;
                         }
@@ -133,7 +126,7 @@ public class ContactsFragment extends Fragment {
                             getResources().getString(R.string.friend_action_block)
                     };
                 }
-                builder.setTitle("Actions on " + item.first)
+                builder.setTitle(main_act.getString(R.string.contacts_actions_on) + " " + item.first)
                         .setCancelable(true)
                         .setItems(items, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int index) {
@@ -144,6 +137,7 @@ public class ContactsFragment extends Fragment {
                                         case 0:
                                             AntoxDB db = new AntoxDB(getActivity().getApplicationContext());
                                             db.addFriend(item.first, "Friend Accepted");
+                                            main_act.updateLeftPane();
                                             Intent acceptRequestIntent = new Intent(getActivity(), ToxService.class);
                                             acceptRequestIntent.setAction(Constants.ACCEPT_FRIEND_REQUEST);
                                             acceptRequestIntent.putExtra("key", item.first);
@@ -158,6 +152,7 @@ public class ContactsFragment extends Fragment {
                                                     Constants.COLUMN_NAME_KEY + "='" + item.first + "'",
                                                     null);
                                             toxSingleton.db.close();
+                                            main_act.updateLeftPane();
                                             Intent rejectRequestIntent = new Intent(main_act, ToxService.class);
                                             rejectRequestIntent.setAction(Constants.REJECT_FRIEND_REQUEST);
                                             rejectRequestIntent.putExtra("key", item.first);
@@ -169,6 +164,9 @@ public class ContactsFragment extends Fragment {
                                 }else{
                                     switch (index){
                                         case 0:
+                                            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                                            intent.setType("image/* video/* audio/* file/*");
+                                            main_act.startActivityForResult(intent, Constants.SENDFILE_PICKEDFRIEND_CODE);
                                             Log.v("To implement", "" + items[0]);
                                             break;
                                         case 1:
@@ -209,9 +207,9 @@ public class ContactsFragment extends Fragment {
     public void showAlertDialog(Context context, String fkey) {
         final String key= fkey;
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setMessage("Do you want to clear the saved chat logs as well?")
+        builder.setMessage(getResources().getString(R.string.contacts_clear_saved_logs))
                 .setCancelable(false)
-                .setPositiveButton("Yes",
+                .setPositiveButton(getResources().getString(R.string.button_yes),
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog,
                                                 int id) {
@@ -219,27 +217,28 @@ public class ContactsFragment extends Fragment {
                                 db.deleteChat(key);
                                 db.deleteFriend(key);
                                 db.close();
-                                updateLeftPane();
+                                main_act.updateLeftPane();
                                 Intent intent = new Intent(getActivity(), ToxService.class);
                                 intent.setAction(Constants.DELETE_FRIEND_AND_CHAT);
                                 intent.putExtra("key", key);
                                 getActivity().startService(intent);
                             }
                         })
-                .setNegativeButton("No",
+                .setNegativeButton(getResources().getString(R.string.button_no),
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog,
                                                 int id) {
                                 AntoxDB db = new AntoxDB(getActivity());
                                 db.deleteFriend(key);
                                 db.close();
-                                updateLeftPane();
+                                main_act.updateLeftPane();
                                 Intent intent = new Intent(getActivity(), ToxService.class);
                                 intent.setAction(Constants.DELETE_FRIEND);
                                 intent.putExtra("key", key);
                                 getActivity().startService(intent);
                             }
-                        });
+                        }
+                );
         builder.show();
     }
 }
