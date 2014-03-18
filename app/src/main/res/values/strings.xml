@@ -47,6 +47,7 @@
     <string name="settings_custom_dht">Custom DHT node Settings</string>
     <string name="settings_use_custom_dht">Use Custom DHT node settings</string>
     <string name="settings_user_key_title">Your Tox ID</string>
+    <string name="settings_user_avatar">Your Tox Profile Pic</string>
     <string name="settings_name_hint">enter your name</string>
     <string name="settings_note_hint">enter your personal note</string>
     <string name="settings_dht_ip">IP address of a bootstrap (ex: 192.254.75.98)</string>

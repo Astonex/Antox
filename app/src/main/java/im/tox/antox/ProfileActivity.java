@@ -14,6 +14,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,6 +26,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 import im.tox.QR.Contents;
 import im.tox.QR.QRCodeEncode;
@@ -95,6 +97,43 @@ public class ProfileActivity extends ActionBarActivity {
                 startActivity(Intent.createChooser(shareIntent, getResources().getString(R.string.share_with)));
             }
         });
+
+
+        LinearLayout avatar = (LinearLayout)findViewById(R.id.avatar_image_layout);
+        avatar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent shareIntent = new Intent();
+                shareIntent.setAction(Intent.ACTION_PICK);
+                shareIntent.setType("image/*");
+                startActivityForResult(shareIntent, 1);
+            }
+        });
+
+
+        /*
+         * If the preference for user profile image isn't blank then set the user profile
+         * image...
+         */
+        if(!pref.getString("saved_user_image","").equals("")){
+            file = new File(Environment.getExternalStorageDirectory().getPath() + "/Antox/Avatar.jpeg");
+            ImageButton profileImage = (ImageButton)findViewById(R.id.avatar_image);
+            try{
+                if(file!=null){
+                    if(file.exists()){
+                        UserDetails.image = BitmapFactory.decodeFile(file.getPath());
+                        profileImage = (ImageButton)findViewById(R.id.avatar_image);
+                        UserDetails.image = Bitmap.createScaledBitmap(UserDetails.image,256,256,true);
+                        profileImage.setImageBitmap(UserDetails.image);
+                    }
+                }
+            }catch(Exception e){
+                        profileImage.setImageDrawable(getResources().getDrawable(R.drawable.ic_user_avatar));
+            }
+        }
+
+
+
 
 		/* If the preferences aren't blank, then add them to text fields
          * otherwise it will display the predefined hints in strings.xml
@@ -206,4 +245,42 @@ public class ProfileActivity extends ActionBarActivity {
     }
 
 
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent imageReturnedIntent) {
+        super.onActivityResult(requestCode, resultCode, imageReturnedIntent);
+        if(requestCode==1){
+            if(resultCode==RESULT_OK){
+                if(imageReturnedIntent==null){
+                    Toast.makeText(ProfileActivity.this,"Failed to fetch the image",Toast.LENGTH_SHORT).show();
+                }else {
+                    //ACTUAL IMAGE LOADING TAKES AT THIS PLACE....
+                    try{
+                        Uri imageuri = imageReturnedIntent.getData();
+                        InputStream stream = getContentResolver().openInputStream(imageuri);
+                        FileOutputStream out = new FileOutputStream(Environment.getExternalStorageDirectory().getPath()+"/antox/Avatar.jpeg");
+                        Bitmap img = BitmapFactory.decodeStream(stream);
+                        img.compress(Bitmap.CompressFormat.JPEG,70,out);
+                        out.close();
+
+                        UserDetails.image = Bitmap.createScaledBitmap(img,256,256,true);
+
+                        SharedPreferences prefs = getSharedPreferences("settings" , Context.MODE_PRIVATE);
+                        SharedPreferences.Editor editor = prefs.edit();
+                        editor.putString("saved_user_image","image_saved");
+                        editor.commit();
+
+                        ImageButton profileImage = (ImageButton)findViewById(R.id.avatar_image);
+                        profileImage.setImageBitmap(UserDetails.image);
+                    }catch(FileNotFoundException e){
+                        Toast.makeText(ProfileActivity.this,"Failed to fetch the image",Toast.LENGTH_SHORT).show();
+                    }catch(Exception e){
+                        Toast.makeText(ProfileActivity.this,"Failed to fetch the image",Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }else{
+                Toast.makeText(ProfileActivity.this,"Image Not Selected ",Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
 }

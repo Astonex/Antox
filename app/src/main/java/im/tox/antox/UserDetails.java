@@ -1,5 +1,7 @@
 package im.tox.antox;
 
+import android.graphics.Bitmap;
+
 import im.tox.jtoxcore.ToxUserStatus;
 
 /**
@@ -10,4 +12,7 @@ public final class UserDetails {
     public static String username = null;
     public static ToxUserStatus status = null;
     public static String note = null;
+
+    //Keeps hold of the user profile image set in Tox....
+    public static Bitmap image = null;
 }
