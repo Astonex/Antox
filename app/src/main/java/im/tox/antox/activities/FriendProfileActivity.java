@@ -49,14 +49,12 @@ public class FriendProfileActivity extends ActionBarActivity {
 
         setTitle(friendName+"'s Profile");
 
-        TextView editFriendName = (TextView) findViewById(R.id.friendNameText);
-        editFriendName.setText(friendName);
 
         EditText editFriendAlias = (EditText) findViewById(R.id.friendAliasText);
         editFriendAlias.setText(friendAlias);
 
         TextView editFriendNote = (TextView) findViewById(R.id.friendNoteText);
-        editFriendNote.setText(friendNote);
+        editFriendNote.setText("\""+friendNote+"\"");
 
         TextView editFriendKey = (TextView) findViewById(R.id.friendKeyText);
         editFriendKey.setText(friendKey);
