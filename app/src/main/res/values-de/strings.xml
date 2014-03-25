@@ -36,6 +36,7 @@
     <string name="about_facebook_url">https://www.facebook.com/toxproject</string>
     <string name="about_twitter_url">https://twitter.com/ProjectTox</string>
     <string name="about_irc">Wir sind auf Freenode in #tox-dev</string>
+    <string name="about_version">Version</string>
 
     <!--  Chat Activity -->
     <string name="chat_enter_message">Nachricht senden</string>
@@ -93,8 +94,9 @@
     <string name="friend_action_delete">Löschen</string>
     <string name="friend_action_block">Blockieren</string>
     <string name="group_action_leave">Gruppe verlassen</string>
+    <string name="friend_action_deletechat">Chatverlauf löschen</string>
 
-    <string name="contacts_actions_on">Aktionen </string>
+    <string name="contacts_actions_on">Aktionen für</string>
     <string name="contacts_clear_saved_logs">Möchtest du den Chatverlauf ebenfalls löschen?</string>
 
     <!--  Misc -->
