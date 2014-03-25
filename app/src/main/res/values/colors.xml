@@ -9,4 +9,6 @@
     <color name="gray_darker">@android:color/darker_gray</color>
 
     <color name="green">#99cc00</color>
+    <color name="cream">#ffffff</color>
+    <color name="cream_dark">#ff0000</color>
 </resources>

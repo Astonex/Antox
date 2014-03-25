@@ -34,7 +34,7 @@ public class ToxDataFile {
 	 */
 	public boolean doesFileExist() {
 		File myFile = ctx.getFileStreamPath(fileName);
-		return myFile.exists();
+        return myFile.exists();
 	}
 
 	/**
