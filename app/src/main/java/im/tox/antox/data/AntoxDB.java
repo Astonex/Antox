@@ -241,27 +241,32 @@ public class AntoxDB extends SQLiteOpenHelper {
 
         Cursor cursor = db.rawQuery(selectQuery, null);
 
-        if (cursor.moveToFirst()) {
-            do {
-                String name = cursor.getString(2);
-                String key = cursor.getString(1);
-                String status = cursor.getString(3);
-                String note = cursor.getString(4);
-                String alias = cursor.getString(6);
-                int online = cursor.getInt(5);
+        if(cursor != null){
+            if (cursor.moveToFirst()) {
+                do {
+                    String name = cursor.getString(2);
+                    String key = cursor.getString(1);
+                    String status = cursor.getString(3);
+                    String note = cursor.getString(4);
 
-                if(alias == null)
-                    alias = "";
+                    String alias = cursor.getString(6);
 
-                if(!alias.equals(""))
-                    name = alias;
-                else if(name.equals(""))
-                    name = key.substring(0,7);
+                    int online = cursor.getInt(5);
+
+                    if(alias == null)
+                        alias = "";
+
+                    if(!alias.equals(""))
+                        name = alias;
+                    else if(name.equals(""))
+                        name = key.substring(0,7);
 
 
-                friendList.add(new Friend(online,name,status,note, key));
-            } while (cursor.moveToNext());
+                    friendList.add(new Friend(online,name,status,note, key));
+                } while (cursor.moveToNext());
+            }
         }
+
 
         cursor.close();
         db.close();
