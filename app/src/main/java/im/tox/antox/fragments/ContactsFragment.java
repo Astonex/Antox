@@ -309,7 +309,7 @@ public class ContactsFragment extends Fragment {
     }
     public void updateOrderList(String key)
     {
-        SharedPreferences pref = getActivity().getSharedPreferences("order", Context.MODE_PRIVATE);
+        SharedPreferences pref = getActivity().getSharedPreferences("orderlist", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
         String serialized = pref.getString("PREF_KEY_STRINGS", null);//if the list is null, add the same order as in DB
         List<String> list = new LinkedList(Arrays.asList(TextUtils.split(serialized, ",")));

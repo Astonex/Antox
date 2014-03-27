@@ -127,7 +127,7 @@ public class MainActivity extends ActionBarActivity {
                     toast.show();
                 } else if (action.equals(Constants.UPDATE_MESSAGES)) {
                     Log.d(TAG, "UPDATE_MESSAGES, intent key = " + intent.getStringExtra("key") + ", activeFriendKey = " + toxSingleton.activeFriendKey);
-                    SharedPreferences pref = getSharedPreferences("order",Context.MODE_PRIVATE);
+                    SharedPreferences pref = getSharedPreferences("orderlist",Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = pref.edit();
                     String serialized = pref.getString("PREF_KEY_STRINGS", null);//if the list is null, add the same order as in DB
                     if(serialized==null) {
@@ -344,7 +344,7 @@ public class MainActivity extends ActionBarActivity {
         AntoxDB antoxDB = new AntoxDB(this);
 
         friendList = antoxDB.getFriendList();
-        SharedPreferences pref = getSharedPreferences("order",Context.MODE_PRIVATE);
+        SharedPreferences pref = getSharedPreferences("orderlist",Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
         String serialized = pref.getString("PREF_KEY_STRINGS", null);//if the list is null, add the same order as in DB
         if(serialized==null) {
@@ -394,6 +394,7 @@ public class MainActivity extends ActionBarActivity {
             LeftPaneItem friends_header = new LeftPaneItem(Constants.TYPE_HEADER, getResources().getString(R.string.main_friends), null, 0);
             leftPaneAdapter.addItem(friends_header);
             leftPaneKeyList.add("");
+            System.out.println("%% "+friends_list.length);
             for (int j = 0; j < friends_list.length; j++)
             {
                 for(int i=0; i< friends_list.length; i++)
