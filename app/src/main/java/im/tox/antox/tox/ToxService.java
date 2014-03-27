@@ -17,9 +17,6 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Random;
 
 import im.tox.antox.data.AntoxDB;
@@ -280,6 +277,7 @@ public class ToxService extends IntentService {
             AntoxDB db = new AntoxDB(getApplicationContext());
             db.addFriendRequest(key, message);
             db.close();
+
             /* Notification */
             if(!toxSingleton.leftPaneActive) {
                 NotificationCompat.Builder mBuilder =
@@ -343,7 +341,7 @@ public class ToxService extends IntentService {
                 AntoxFriend friend = toxSingleton.friendsList.addFriend(toxSingleton.friendsList.all().size()+1);
                 int pos = -1;
                 for(int i = 0; i < friends.size(); i++) {
-                    if(friends.get(i).friendKey == key) {
+                    if(friends.get(i).friendKey.equals(key)) {
                         pos = i;
                         break;
                     }
@@ -358,15 +356,7 @@ public class ToxService extends IntentService {
                 Log.d(TAG, "Saving request");
 
                 Log.d(TAG, "Tox friend list updated. New size: " + toxSingleton.friendsList.all().size());
-                SharedPreferences pref = getSharedPreferences("orderlist",Context.MODE_PRIVATE);
-                SharedPreferences.Editor editor = pref.edit();
-                String serialized = pref.getString("PREF_KEY_STRINGS", null);
-                List<String> list = new LinkedList(Arrays.asList(TextUtils.split(serialized, ",")));
-                list.add(key);
-                editor.remove("PREF_KEY_STRINGS");
-                editor.commit();
-                editor.putString("PREF_KEY_STRINGS", TextUtils.join(",", list));
-                editor.commit();
+
 
             } catch (Exception e) {
 

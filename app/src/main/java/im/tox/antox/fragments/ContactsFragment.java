@@ -17,11 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
-
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
 
 import im.tox.antox.activities.FriendProfileActivity;
 import im.tox.antox.data.AntoxDB;
@@ -270,7 +266,6 @@ public class ContactsFragment extends Fragment {
                                 db.deleteFriend(key);
                                 db.close();
                                 clearChat(key);
-                                updateOrderList(key);
                                 main_act.updateLeftPane();
                                 Intent intent = new Intent(getActivity(), ToxService.class);
                                 intent.setAction(Constants.DELETE_FRIEND_AND_CHAT);
@@ -286,7 +281,6 @@ public class ContactsFragment extends Fragment {
                                 db.deleteFriend(key);
                                 db.close();
                                 clearChat(key);
-                                updateOrderList(key);
                                 main_act.updateLeftPane();
                                 Intent intent = new Intent(getActivity(), ToxService.class);
                                 intent.setAction(Constants.DELETE_FRIEND);
@@ -307,16 +301,5 @@ public class ContactsFragment extends Fragment {
             main_act.activeTitle="Antox";
         }
     }
-    public void updateOrderList(String key)
-    {
-        SharedPreferences pref = getActivity().getSharedPreferences("orderlist", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = pref.edit();
-        String serialized = pref.getString("PREF_KEY_STRINGS", null);//if the list is null, add the same order as in DB
-        List<String> list = new LinkedList(Arrays.asList(TextUtils.split(serialized, ",")));
-        list.remove(key);
-        editor.remove("PREF_KEY_STRINGS");
-        editor.commit();
-        editor.putString("PREF_KEY_STRINGS", TextUtils.join(",", list));
-        editor.commit();
-    }
+
 }

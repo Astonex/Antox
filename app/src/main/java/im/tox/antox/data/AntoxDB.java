@@ -25,19 +25,16 @@ public class AntoxDB extends SQLiteOpenHelper {
 
     private ToxSingleton toxSingleton = ToxSingleton.getInstance();
 
-
+    // After modifying one of this tables, update the database version in Constants.DATABASE_VERSION
+    // and also update the onUpgrade method
     public String CREATE_TABLE_FRIENDS = "CREATE TABLE IF NOT EXISTS " + Constants.TABLE_FRIENDS +
-            " ( _id integer primary key , key text, username text, status text, note text, isonline boolean, alias text)";
+            " ( _id integer primary key , key text, username text, status text, note text,  alias text, isonline boolean)";
 
     public String CREATE_TABLE_CHAT_LOGS = "CREATE TABLE IF NOT EXISTS " + Constants.TABLE_CHAT_LOGS +
             " ( _id integer primary key , timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, message_id integer, key text, message text, is_outgoing boolean, has_been_received boolean, has_been_read boolean, successfully_sent boolean)";
 
     public String CREATE_TABLE_FRIEND_REQUEST = "CREATE TABLE IF NOT EXISTS " + Constants.TABLE_FRIEND_REQUEST +
             " ( _id integer primary key, key text, message text)";
-
-    public String DROP_TABLE_FRIENDS = "DROP TABLE IF EXISTS " + Constants.TABLE_FRIENDS;
-    public String DROP_TABLE_CHAT_LOGS = "DROP TABLE IF EXISTS " + Constants.TABLE_CHAT_LOGS;
-    public String DROP_TABLE_FRIEND_REQUEST = "DROP TABLE IF EXISTS " + Constants.TABLE_FRIEND_REQUEST;
 
     public AntoxDB(Context ctx) {
         super(ctx, Constants.DATABASE_NAME, null, Constants.DATABASE_VERSION);
@@ -51,13 +48,36 @@ public class AntoxDB extends SQLiteOpenHelper {
     }
 
     @Override
-    public void onUpgrade(SQLiteDatabase db, int i, int i2) {
-        db.execSQL(DROP_TABLE_FRIENDS);
-        db.execSQL(DROP_TABLE_CHAT_LOGS);
-        db.execSQL(DROP_TABLE_FRIEND_REQUEST);
-        db.execSQL(CREATE_TABLE_FRIENDS);
-        db.execSQL(CREATE_TABLE_CHAT_LOGS);
-        db.execSQL(CREATE_TABLE_FRIEND_REQUEST);
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        switch(oldVersion) {
+            case 1:
+                db.execSQL("ALTER TABLE " + Constants.TABLE_CHAT_LOGS + " ADD COLUMN has_been_read boolean");
+            case 2:
+                db.execSQL("ALTER TABLE " + Constants.TABLE_CHAT_LOGS + " ADD COLUMN successfully_sent boolean");
+            case 3:
+                //There are some possibilities when in version 3 there is already the alis column
+                if (!isColumnInTable(db, Constants.TABLE_FRIENDS, Constants.COLUMN_NAME_ALIAS)) {
+                    db.execSQL("ALTER TABLE " + Constants.TABLE_FRIENDS + " ADD COLUMN alias text");
+                }
+        }
+    }
+
+    //check if a column is in a table
+    private boolean isColumnInTable(SQLiteDatabase db, String table, String column) {
+        try {
+            Cursor cursor = db.rawQuery("SELECT * FROM " + table + " LIMIT 0", null);
+
+            //if it is -1 the column does not exists
+            if(cursor.getColumnIndex(column) == -1) {
+                return false;
+            }
+            else {
+                return true;
+            }
+        }
+        catch (Exception e) {
+            return false;
+        }
     }
 
     //Adding friend using his key.
@@ -127,6 +147,7 @@ public class AntoxDB extends SQLiteOpenHelper {
         }
 
         cursor.close();
+        db.close();
         return messageList;
     }
 
@@ -194,6 +215,7 @@ public class AntoxDB extends SQLiteOpenHelper {
         }
 
         cursor.close();
+        db.close();
         return messageList;
     }
 
@@ -208,7 +230,7 @@ public class AntoxDB extends SQLiteOpenHelper {
                 + Constants.COLUMN_NAME_MESSAGE_ID + "=" + m_id + " AND "
                 + Constants.COLUMN_NAME_IS_OUTGOING + "=1" + " AND "
                 + Constants.COLUMN_NAME_SUCCESSFULLY_SENT + "=0");
-
+        db.close();
     }
 
     public String setMessageReceived(int receipt) { //returns public key of who the message was sent to
@@ -222,6 +244,7 @@ public class AntoxDB extends SQLiteOpenHelper {
             k = cursor.getString(3);
         }
         cursor.close();
+        db.close();
         return k;
     }
 
@@ -248,8 +271,8 @@ public class AntoxDB extends SQLiteOpenHelper {
                 String key = cursor.getString(1);
                 String status = cursor.getString(3);
                 String note = cursor.getString(4);
-                String alias = cursor.getString(6);
-                int online = cursor.getInt(5);
+                String alias = cursor.getString(5);
+                int online = cursor.getInt(6);
 
                 if(alias == null)
                     alias = "";
@@ -279,9 +302,11 @@ public class AntoxDB extends SQLiteOpenHelper {
         int count = mCount.getInt(0);
         if(count > 0) {
             mCount.close();
+            db.close();
             return true;
         }
         mCount.close();
+        db.close();
         return false;
     }
 
@@ -369,7 +394,7 @@ public class AntoxDB extends SQLiteOpenHelper {
             do {
                 String name = cursor.getString(2);
                 String note = cursor.getString(4);
-                String alias = cursor.getString(6);
+                String alias = cursor.getString(5);
 
                 if(name.equals(""))
                     name = key.substring(0,7);
@@ -382,6 +407,7 @@ public class AntoxDB extends SQLiteOpenHelper {
         }
 
         cursor.close();
+        db.close();
 
         return details;
     }
@@ -390,5 +416,6 @@ public class AntoxDB extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         String query = "UPDATE " + Constants.TABLE_FRIENDS + " SET " + Constants.COLUMN_NAME_ALIAS + "='" + alias + "' WHERE " + Constants.COLUMN_NAME_KEY + "='" + key + "'";
         db.execSQL(query);
+        db.close();
     }
 }
