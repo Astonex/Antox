@@ -277,6 +277,7 @@ public class MainActivity extends ActionBarActivity {
         pane = (SlidingPaneLayout) findViewById(R.id.slidingpane_layout);
         paneListener = new PaneListener();
         pane.setPanelSlideListener(paneListener);
+        pane.setShadowResource(R.drawable.drop_shadow);
         pane.openPane();
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
             getSupportActionBar().setIcon(R.drawable.ic_actionbar);
