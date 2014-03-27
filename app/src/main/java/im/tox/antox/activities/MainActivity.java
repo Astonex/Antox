@@ -394,7 +394,6 @@ public class MainActivity extends ActionBarActivity {
             LeftPaneItem friends_header = new LeftPaneItem(Constants.TYPE_HEADER, getResources().getString(R.string.main_friends), null, 0);
             leftPaneAdapter.addItem(friends_header);
             leftPaneKeyList.add("");
-            System.out.println("%% "+friends_list.length);
             for (int j = 0; j < friends_list.length; j++)
             {
                 for(int i=0; i< friends_list.length; i++)
