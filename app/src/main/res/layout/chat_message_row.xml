@@ -13,14 +13,14 @@
         android:layout_marginBottom="@dimen/margin_small"
         android:layout_marginLeft="@dimen/margin_medium"
         android:layout_marginRight="@dimen/margin_medium"
+        android:background="@drawable/selector_main"
         android:layout_height="wrap_content">
 
         <LinearLayout
             android:orientation="vertical"
             android:id="@+id/message_text_background"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:background="#ffffff">
+            android:layout_height="match_parent">
             <LinearLayout
                 android:id="@+id/message_alignment_box"
                 android:orientation="vertical"
