@@ -76,7 +76,6 @@ public class ContactsFragment extends Fragment {
         transaction.commit();
     }
 
-
     public void updateLeftPane() {
         leftPaneAdapter = main_act.leftPaneAdapter;
         leftPaneListView.setAdapter(leftPaneAdapter);
@@ -93,8 +92,6 @@ public class ContactsFragment extends Fragment {
          */
 
         main_act = (MainActivity) getActivity();
-
-
 
         View rootView = inflater.inflate(R.layout.fragment_leftpane, container, false);
         leftPaneListView = (ListView) rootView.findViewById(R.id.left_pane_list);
@@ -166,13 +163,15 @@ public class ContactsFragment extends Fragment {
                 if(isFriendRequest){
                     items= new CharSequence[]{
                             getResources().getString(R.string.friendrequest_accept),
-                            getResources().getString(R.string.friendrequest_reject)
+                            getResources().getString(R.string.friendrequest_reject),
+                            getResources().getString(R.string.friend_action_block)
                     };
                 }else{
                     items= new CharSequence[]{
                             getResources().getString(R.string.friend_action_profile),
                             getResources().getString(R.string.friend_action_delete),
-                            getResources().getString(R.string.friend_action_deletechat)
+                            getResources().getString(R.string.friend_action_deletechat),
+                            getResources().getString(R.string.friend_action_block)
                     };
                 }
                 builder.setTitle(main_act.getString(R.string.contacts_actions_on) + " " + item.first)
@@ -205,6 +204,9 @@ public class ContactsFragment extends Fragment {
                                             main_act.startService(rejectRequestIntent);
                                             main_act.updateLeftPane();
                                             //rejectRequest(item.first);
+                                            break;
+                                        case 2:
+                                            showBlockDialog(getActivity(),item.first);
                                             break;
                                     }
                                 }else{
@@ -239,6 +241,9 @@ public class ContactsFragment extends Fragment {
                                             main_act.updateLeftPane();
                                             clearChat(key);
                                             break;
+                                        case 3:
+                                            showBlockDialog(getActivity(),key);
+                                            break;
                                     }
                                 }
                                 dialog.cancel();
@@ -253,6 +258,38 @@ public class ContactsFragment extends Fragment {
         });
 
         return rootView;
+    }
+
+    public void showBlockDialog(Context context, String fkey) {
+        final String key = fkey;
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setMessage(getResources().getString(R.string.friend_action_block_confirmation))
+                .setCancelable(false)
+                .setPositiveButton(getResources().getString(R.string.button_yes),
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog,
+                                                int id) {
+                                AntoxDB db = new AntoxDB(getActivity());
+                                db.deleteChat(key);
+                                db.deleteFriend(key);
+                                db.blockUser(key);
+                                db.close();
+                                clearChat(key);
+                                main_act.updateLeftPane();
+                                Intent intent = new Intent(getActivity(), ToxService.class);
+                                intent.setAction(Constants.DELETE_FRIEND_AND_CHAT);
+                                intent.putExtra("key", key);
+                                getActivity().startService(intent);
+                            }
+                        })
+                .setNegativeButton(getResources().getString(R.string.button_no),
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog,
+                                                int id) {
+                            }
+                        }
+                );
+        builder.show();
     }
 
     public void showAlertDialog(Context context, String fkey) {

@@ -1,12 +1,14 @@
 package im.tox.antox.activities;
 
 import android.app.AlertDialog;
+import android.app.Application;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -20,15 +22,18 @@ import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.SlidingPaneLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.SearchView;
-import android.text.TextUtils;
+import android.support.v7.app.ActionBar;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.MimeTypeMap;
+import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
+import android.widget.SpinnerAdapter;
 import android.widget.Toast;
 
 import org.jsoup.Jsoup;
@@ -42,9 +47,8 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 
 import im.tox.antox.data.AntoxDB;
 import im.tox.antox.utils.AntoxFriend;
@@ -71,7 +75,7 @@ import im.tox.jtoxcore.ToxUserStatus;
  * @author Mark Winter (Astonex)
  */
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends ActionBarActivity{
 
     private static final String TAG = "im.tox.antox.activities.MainActivity";
 
@@ -270,12 +274,42 @@ public class MainActivity extends ActionBarActivity {
 
         }
 
+        SharedPreferences settingsPref = getSharedPreferences("settings", Context.MODE_PRIVATE);
+
+        SpinnerAdapter adapter = ArrayAdapter.createFromResource(this, R.array.actions,
+                R.layout.group_item);
+        if (settingsPref.getInt("group_option", -1) == -1) {
+            SharedPreferences.Editor editor = settingsPref.edit();
+            editor.putInt("group_option", 0);
+            editor.commit();
+        }
+
+        ActionBar.OnNavigationListener callback = new ActionBar.OnNavigationListener() {
+            String[] items = getResources().getStringArray(R.array.actions);
+            @Override
+            public boolean onNavigationItemSelected(int itemPosition, long itemId) {
+                Log.d("NavigationItemSelected", items[itemPosition]);
+                SharedPreferences settingsPref = getSharedPreferences("settings", Context.MODE_PRIVATE);
+                if (itemPosition != settingsPref.getInt("group_option", -1)) {
+                    SharedPreferences.Editor editor = settingsPref.edit();
+                    editor.putInt("group_option", itemPosition);
+                    editor.commit();
+                    updateLeftPane();
+                }
+                return true;
+            }
+        };
+        ActionBar actions = getSupportActionBar();
+        actions.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
+        actions.setDisplayShowTitleEnabled(false);
+        actions.setListNavigationCallbacks(adapter, callback);
+        actions.setSelectedNavigationItem(settingsPref.getInt("group_option", 0));
+
         Intent getFriendsList = new Intent(this, ToxService.class);
         getFriendsList.setAction(Constants.FRIEND_LIST);
         this.startService(getFriendsList);
 
         /* Load user details */
-        SharedPreferences settingsPref = getSharedPreferences("settings", Context.MODE_PRIVATE);
         UserDetails.username = settingsPref.getString("saved_name_hint", "");
         if (settingsPref.getString("saved_status_hint", "").equals("online"))
             UserDetails.status = ToxUserStatus.TOX_USERSTATUS_NONE;
@@ -285,6 +319,13 @@ public class MainActivity extends ActionBarActivity {
             UserDetails.status = ToxUserStatus.TOX_USERSTATUS_BUSY;
         else
             UserDetails.status = ToxUserStatus.TOX_USERSTATUS_NONE;
+
+        if (settingsPref.getString("language", "").equals("")) {
+            //set the current language
+            SharedPreferences.Editor editor = settingsPref.edit();
+            editor.putString("language", getCurrentLanguageOnStart());
+            editor.commit();
+        }
 
         UserDetails.note = settingsPref.getString("saved_note_hint", "");
 
@@ -312,6 +353,40 @@ public class MainActivity extends ActionBarActivity {
     protected void onDestroy() {
         Log.i(TAG, "onDestroy");
         super.onDestroy();
+    }
+
+    private String getCurrentLanguageOnStart() {
+        String currentLanguage = getResources().getConfiguration().locale.getCountry().toLowerCase();
+        String language;
+        switch (currentLanguage) {
+            case "en":
+                language = "English";
+                break;
+            case "de":
+                language = "Deutsch";
+                break;
+            case "es":
+                language = "Español";
+                break;
+            case "fr":
+                language = "Français";
+                break;
+            case "it":
+                language = "Italiano";
+                break;
+            case "nl":
+                language = "Nederlands";
+                break;
+            case "pl":
+                language = "Polski";
+                break;
+            case "tr":
+                language = "Türkçe";
+                break;
+            default:
+                language = "English";
+        }
+        return language;
     }
     private Message mostRecentMessage(String key, ArrayList<Message> messages) {
         for (int i=0; i<messages.size(); i++) {
@@ -343,6 +418,7 @@ public class MainActivity extends ActionBarActivity {
 
         AntoxDB antoxDB = new AntoxDB(this);
 
+<<<<<<< HEAD
         friendList = antoxDB.getFriendList();
         SharedPreferences pref = getSharedPreferences("orderlist",Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
@@ -354,6 +430,11 @@ public class MainActivity extends ActionBarActivity {
             editor.putString("PREF_KEY_STRINGS", TextUtils.join(",", friendListKey));
             editor.commit();
             }
+=======
+        SharedPreferences settingsPref = getSharedPreferences("settings", Context.MODE_PRIVATE);
+        friendList = antoxDB.getFriendList(settingsPref.getInt("group_option", 0));
+
+>>>>>>> upstream/master
         ArrayList<Message> messageList = antoxDB.getMessageList("");
 
         Friend friends_list[] = new Friend[friendList.size()];
@@ -370,7 +451,7 @@ public class MainActivity extends ActionBarActivity {
 
         LinearLayout noFriends = (LinearLayout) findViewById(R.id.left_pane_no_friends);
 
-        if (friend_requests_list.length == 0 && friends_list.length == 0) {
+        if (friend_requests_list.length == 0 && antoxDB.getFriendList(Constants.OPTION_ALL_FRIENDS).size() == 0) {
             noFriends.setVisibility(View.VISIBLE);
         } else {
             noFriends.setVisibility(View.GONE);
@@ -421,7 +502,7 @@ public class MainActivity extends ActionBarActivity {
      */
     private void openSettings() {
         Intent intent = new Intent(this, SettingsActivity.class);
-        startActivity(intent);
+        startActivityForResult(intent, Constants.UPDATE_SETTINGS_REQUEST_CODE);
     }
     /**
      * Starts a new intent to open the SettingsActivity class
@@ -629,16 +710,13 @@ public class MainActivity extends ActionBarActivity {
             Socket socket = null;
             Log.d(TAG, "DhtNode size: " + DhtNode.ipv4.size());
             for(int i = 0;i < DhtNode.ipv4.size(); i++) {
-                Log.d(TAG, "i = " + i);
                 try {
                     long currentTime = System.currentTimeMillis();
                     boolean reachable = InetAddress.getByName(DhtNode.ipv4.get(i)).isReachable(400);
                     long elapsedTime = System.currentTimeMillis() - currentTime;
-                    Log.d(TAG, "Elapsed time: " + elapsedTime);
                     if (reachable && (elapsedTime < shortestTime)) {
                         shortestTime = elapsedTime;
                         pos = i;
-                        Log.d(TAG, "Shortest time found: " + shortestTime + " at pos: " + pos);
                     }
 
                 } catch (IOException e) {
@@ -715,6 +793,14 @@ public class MainActivity extends ActionBarActivity {
             finish();
         }
     }
+
+    private void restartActivity() {
+        Intent intent = getIntent();
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        finish();
+        startActivity(intent);
+    }
+
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(requestCode==Constants.ADD_FRIEND_REQUEST_CODE && resultCode==RESULT_OK){
             updateLeftPane();
@@ -724,12 +810,16 @@ public class MainActivity extends ActionBarActivity {
             MimeTypeMap mime = MimeTypeMap.getSingleton();
             Log.d("file picked",""+pickedFile.getAbsolutePath() );
             Log.d("file type",""+getContentResolver().getType(uri));
+        } else if(requestCode==Constants.UPDATE_SETTINGS_REQUEST_CODE && resultCode==RESULT_OK) {
+            restartActivity();
         }
     }
+
     private class PaneListener implements SlidingPaneLayout.PanelSlideListener {
 
         @Override
         public void onPanelClosed(View view) {
+            getSupportActionBar().setDisplayShowTitleEnabled(true);
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             setTitle(activeTitle);
             MenuItem af = menu.findItem(R.id.add_friend);
@@ -750,10 +840,15 @@ public class MainActivity extends ActionBarActivity {
                 updateChat(toxSingleton.activeFriendKey);
             }
             clearUselessNotifications();
+
+            //Hide group menu
+            ActionBar bar = MainActivity.this.getSupportActionBar();
+            bar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
         }
 
         @Override
         public void onPanelOpened(View view) {
+            getSupportActionBar().setDisplayShowTitleEnabled(false);
             getSupportActionBar().setDisplayHomeAsUpEnabled(false);
             setTitle(R.string.app_name);
             MenuItem af = menu.findItem(R.id.add_friend);
@@ -770,6 +865,10 @@ public class MainActivity extends ActionBarActivity {
             /* This is causing a null pointer exception */
             //imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
             System.out.println("Panel opened");
+
+            //Show group menu
+            ActionBar bar = MainActivity.this.getSupportActionBar();
+            bar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
         }
 
         @Override

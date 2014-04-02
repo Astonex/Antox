@@ -8,8 +8,11 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Random;
+import java.util.TimeZone;
 
 import im.tox.antox.utils.Constants;
 import im.tox.antox.utils.Friend;
@@ -28,7 +31,7 @@ public class AntoxDB extends SQLiteOpenHelper {
     // After modifying one of this tables, update the database version in Constants.DATABASE_VERSION
     // and also update the onUpgrade method
     public String CREATE_TABLE_FRIENDS = "CREATE TABLE IF NOT EXISTS " + Constants.TABLE_FRIENDS +
-            " ( _id integer primary key , key text, username text, status text, note text,  alias text, isonline boolean)";
+            " ( _id integer primary key , key text, username text, status text, note text,  alias text, isonline boolean, isblocked boolean)";
 
     public String CREATE_TABLE_CHAT_LOGS = "CREATE TABLE IF NOT EXISTS " + Constants.TABLE_CHAT_LOGS +
             " ( _id integer primary key , timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, message_id integer, key text, message text, is_outgoing boolean, has_been_received boolean, has_been_read boolean, successfully_sent boolean)";
@@ -52,12 +55,20 @@ public class AntoxDB extends SQLiteOpenHelper {
         switch(oldVersion) {
             case 1:
                 db.execSQL("ALTER TABLE " + Constants.TABLE_CHAT_LOGS + " ADD COLUMN has_been_read boolean");
+                break;
             case 2:
                 db.execSQL("ALTER TABLE " + Constants.TABLE_CHAT_LOGS + " ADD COLUMN successfully_sent boolean");
+                break;
             case 3:
                 //There are some possibilities when in version 3 there is already the alis column
                 if (!isColumnInTable(db, Constants.TABLE_FRIENDS, Constants.COLUMN_NAME_ALIAS)) {
                     db.execSQL("ALTER TABLE " + Constants.TABLE_FRIENDS + " ADD COLUMN alias text");
+                    break;
+                }
+            case 4:
+                if (!isColumnInTable(db, Constants.TABLE_FRIENDS, Constants.COLUMN_NAME_ISBLOCKED)) {
+                    db.execSQL("ALTER TABLE " + Constants.TABLE_FRIENDS + " ADD COLUMN isblocked boolean");
+                    break;
                 }
         }
     }
@@ -201,7 +212,7 @@ public class AntoxDB extends SQLiteOpenHelper {
 
         if (cursor.moveToFirst()) {
             do {
-                int m_id = cursor.getInt(0);
+                int m_id = cursor.getInt(2);
                 Log.d("UNSENT MESAGE ID: ", "" + m_id);
                 String k = cursor.getString(3);
                 String m = cursor.getString(4);
@@ -221,15 +232,17 @@ public class AntoxDB extends SQLiteOpenHelper {
 
     public void updateUnsentMessage(int m_id) {
         Log.d("UPDATE UNSENT MESSAGE - ID : ", "" + m_id);
+        String messageId = m_id + "";
         SQLiteDatabase db = this.getWritableDatabase();
-        Random generator = new Random();
-        db.execSQL("UPDATE " + Constants.TABLE_CHAT_LOGS + " SET "
-                + Constants.COLUMN_NAME_SUCCESSFULLY_SENT + "=1, "
-                + Constants.COLUMN_NAME_MESSAGE_ID + "=" + generator.nextInt() + ", "
-                + Constants.COLUMN_NAME_TIMESTAMP + "=datetime('now') WHERE "
-                + Constants.COLUMN_NAME_MESSAGE_ID + "=" + m_id + " AND "
-                + Constants.COLUMN_NAME_IS_OUTGOING + "=1" + " AND "
-                + Constants.COLUMN_NAME_SUCCESSFULLY_SENT + "=0");
+        ContentValues values = new ContentValues();
+        values.put(Constants.COLUMN_NAME_SUCCESSFULLY_SENT, "1");
+        values.put(Constants.COLUMN_NAME_IS_OUTGOING, "1");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        Date date = new Date();
+        values.put(Constants.COLUMN_NAME_TIMESTAMP, dateFormat.format(date));
+        db.update(Constants.TABLE_CHAT_LOGS, values, Constants.COLUMN_NAME_MESSAGE_ID + "=" + messageId
+                + " AND " + Constants.COLUMN_NAME_SUCCESSFULLY_SENT + "=0", null);
         db.close();
     }
 
@@ -256,12 +269,27 @@ public class AntoxDB extends SQLiteOpenHelper {
         Log.d("", "marked incoming messages as read");
     }
 
-    public ArrayList<Friend> getFriendList() {
+    public ArrayList<Friend> getFriendList(int option) {
         SQLiteDatabase db = this.getReadableDatabase();
 
         ArrayList<Friend> friendList = new ArrayList<Friend>();
-        // Getting all friends
-        String selectQuery = "SELECT  * FROM " + Constants.TABLE_FRIENDS;
+        String selectQuery = "";
+        switch (option) {
+            case Constants.OPTION_ALL_FRIENDS:
+                selectQuery = "SELECT  * FROM " + Constants.TABLE_FRIENDS;
+                break;
+            case Constants.OPTION_ONLINE_FRIENDS:
+                selectQuery = "SELECT * FROM " + Constants.TABLE_FRIENDS + " WHERE " + Constants.COLUMN_NAME_ISONLINE + "=1";
+                break;
+            case Constants.OPTION_OFFLINE_FRIENDS:
+                selectQuery = "SELECT * FROM " + Constants.TABLE_FRIENDS + " WHERE " + Constants.COLUMN_NAME_ISONLINE + "=0";
+                break;
+            case Constants.OPTION_BLOCKED_FRIENDS:
+                selectQuery = "SELECT * FROM " + Constants.TABLE_FRIENDS + " WHERE " + Constants.COLUMN_NAME_ISBLOCKED + "=1";
+                break;
+            default:
+                break;
+        }
 
         Cursor cursor = db.rawQuery(selectQuery, null);
 
@@ -273,6 +301,7 @@ public class AntoxDB extends SQLiteOpenHelper {
                 String note = cursor.getString(4);
                 String alias = cursor.getString(5);
                 int online = cursor.getInt(6);
+                boolean isBlocked = cursor.getInt(7)>0;
 
                 if(alias == null)
                     alias = "";
@@ -282,8 +311,8 @@ public class AntoxDB extends SQLiteOpenHelper {
                 else if(name.equals(""))
                     name = key.substring(0,7);
 
-
-                friendList.add(new Friend(online,name,status,note, key));
+                if(!isBlocked)
+                    friendList.add(new Friend(online,name,status,note, key));
             } while (cursor.moveToNext());
         }
 
@@ -415,6 +444,33 @@ public class AntoxDB extends SQLiteOpenHelper {
     public void updateAlias(String alias, String key) {
         SQLiteDatabase db = this.getWritableDatabase();
         String query = "UPDATE " + Constants.TABLE_FRIENDS + " SET " + Constants.COLUMN_NAME_ALIAS + "='" + alias + "' WHERE " + Constants.COLUMN_NAME_KEY + "='" + key + "'";
+        db.execSQL(query);
+        db.close();
+    }
+
+    public boolean isFriendBlocked(String key) {
+        boolean isBlocked = false;
+        SQLiteDatabase db = this.getReadableDatabase();
+        String selectQuery = "SELECT isBlocked FROM " + Constants.TABLE_FRIENDS + " WHERE " + Constants.COLUMN_NAME_KEY + "='" + key + "'";
+        Cursor cursor = db.rawQuery(selectQuery, null);
+        if(cursor.moveToFirst()) {
+            isBlocked = cursor.getInt(0)>0;
+        }
+        cursor.close();
+        db.close();
+        return isBlocked;
+    }
+
+    public void blockUser(String key) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        String query = "UPDATE " + Constants.TABLE_FRIENDS + " SET " + Constants.COLUMN_NAME_ISBLOCKED + "='TRUE' WHERE " + Constants.COLUMN_NAME_KEY + "='" + key + "'";
+        db.execSQL(query);
+        db.close();
+    }
+
+    public void unblockUser(String key) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        String query = "UPDATE " + Constants.TABLE_FRIENDS + " SET " + Constants.COLUMN_NAME_ISBLOCKED + "='FALSE' WHERE " + Constants.COLUMN_NAME_KEY + "='" + key + "'";
         db.execSQL(query);
         db.close();
     }
