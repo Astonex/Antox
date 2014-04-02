@@ -131,8 +131,22 @@ public class MainActivity extends ActionBarActivity{
                     toast.show();
                 } else if (action.equals(Constants.UPDATE_MESSAGES)) {
                     Log.d(TAG, "UPDATE_MESSAGES, intent key = " + intent.getStringExtra("key") + ", activeFriendKey = " + toxSingleton.activeFriendKey);
-
-                    updateLeftPane();
+                    SharedPreferences pref = getSharedPreferences("orderlist",Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = pref.edit();
+                    String serialized = pref.getString("PREF_KEY_STRINGS", null);//if the list is null, add the same order as in DB
+                    if(serialized==null) {
+                          editor.putString("PREF_KEY_STRINGS", TextUtils.join(",", friendList));
+                          editor.commit();
+                     }
+                     List<String> list = new LinkedList(Arrays.asList(TextUtils.split(serialized, ",")));
+                     String temp = intent.getStringExtra("key");
+                     list.remove(temp);
+                     list.add(0, temp);
+                     editor.remove("PREF_KEY_STRINGS");
+                     editor.commit();
+                     editor.putString("PREF_KEY_STRINGS", TextUtils.join(",", list));
+                     editor.commit();
+                     updateLeftPane();
                     if (intent.getStringExtra("key").equals(toxSingleton.activeFriendKey)) {
                         updateChat(toxSingleton.activeFriendKey);
                     }
@@ -404,9 +418,23 @@ public class MainActivity extends ActionBarActivity{
 
         AntoxDB antoxDB = new AntoxDB(this);
 
+<<<<<<< HEAD
+        friendList = antoxDB.getFriendList();
+        SharedPreferences pref = getSharedPreferences("orderlist",Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = pref.edit();
+        String serialized = pref.getString("PREF_KEY_STRINGS", null);//if the list is null, add the same order as in DB
+        if(serialized==null) {
+            List<String> friendListKey = new ArrayList<String>();
+            for(int i=0;i<friendList.size();i++)
+                friendListKey.add(friendList.get(i).friendKey);
+            editor.putString("PREF_KEY_STRINGS", TextUtils.join(",", friendListKey));
+            editor.commit();
+            }
+=======
         SharedPreferences settingsPref = getSharedPreferences("settings", Context.MODE_PRIVATE);
         friendList = antoxDB.getFriendList(settingsPref.getInt("group_option", 0));
 
+>>>>>>> upstream/master
         ArrayList<Message> messageList = antoxDB.getMessageList("");
 
         Friend friends_list[] = new Friend[friendList.size()];
@@ -440,16 +468,26 @@ public class MainActivity extends ActionBarActivity{
             }
         }
         List<String> list=null;
+        serialized = pref.getString("PREF_KEY_STRINGS", null);
+        if(serialized!=null)
+            list = new LinkedList(Arrays.asList(TextUtils.split(serialized, ",")));
 
         if (friends_list.length > 0) {
             LeftPaneItem friends_header = new LeftPaneItem(Constants.TYPE_HEADER, getResources().getString(R.string.main_friends), null, 0);
             leftPaneAdapter.addItem(friends_header);
             leftPaneKeyList.add("");
-            for (int i = 0; i < friends_list.length; i++) {
-                msg = mostRecentMessage(friends_list[i].friendKey, messageList);
-                LeftPaneItem friend = new LeftPaneItem(Constants.TYPE_CONTACT, friends_list[i].friendName, msg.message, friends_list[i].icon, countUnreadMessages(friends_list[i].friendKey, messageList), msg.timestamp);
-                leftPaneAdapter.addItem(friend);
-                leftPaneKeyList.add(friends_list[i].friendKey);
+            for (int j = 0; j < friends_list.length; j++)
+            {
+                for(int i=0; i< friends_list.length; i++)
+                {
+                        if(list.get(j).equals(friends_list[i].friendKey)) {
+                        msg = mostRecentMessage(friends_list[i].friendKey, messageList);
+                        LeftPaneItem friend = new LeftPaneItem(Constants.TYPE_CONTACT, friends_list[i].friendName, msg.message, friends_list[i].icon, countUnreadMessages(friends_list[i].friendKey, messageList), msg.timestamp);
+                        leftPaneAdapter.addItem(friend);
+                        leftPaneKeyList.add(friends_list[i].friendKey);
+                        break;
+                        }
+                }
             }
         }
         antoxDB.close();

@@ -1,13 +1,20 @@
 package im.tox.antox.fragments;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 
 import im.tox.antox.data.AntoxDB;
 import im.tox.antox.utils.Constants;
@@ -56,6 +63,15 @@ public class FriendRequestFragment extends Fragment {
                 AntoxDB db = new AntoxDB(getActivity().getApplicationContext());
                 db.addFriend(key, "Friend Accepted", "");
                 db.close();
+                SharedPreferences pref = getActivity().getSharedPreferences("orderlist", Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = pref.edit();
+                String serialized = pref.getString("PREF_KEY_STRINGS", null);
+                List<String> list = new LinkedList(Arrays.asList(TextUtils.split(serialized, ",")));
+                list.add(key);
+                editor.remove("PREF_KEY_STRINGS");
+                editor.commit();
+                editor.putString("PREF_KEY_STRINGS", TextUtils.join(",", list));
+                editor.commit();
                 ((MainActivity) getActivity()).updateLeftPane();
                 ((MainActivity) getActivity()).pane.openPane();
                 Intent acceptRequestIntent = new Intent(getActivity(), ToxService.class);

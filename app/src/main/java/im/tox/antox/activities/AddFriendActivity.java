@@ -2,6 +2,7 @@ package im.tox.antox.activities;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -9,6 +10,7 @@ import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBarActivity;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -21,6 +23,10 @@ import org.xbill.DNS.Lookup;
 import org.xbill.DNS.Record;
 import org.xbill.DNS.TXTRecord;
 import org.xbill.DNS.Type;
+
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 
 import im.tox.QR.IntentIntegrator;
 import im.tox.QR.IntentResult;
@@ -118,6 +124,15 @@ public class AddFriendActivity extends ActionBarActivity {
                     ID = alias;
 
                 db.addFriend(ID, "Friend Request Sent", alias);
+                SharedPreferences pref = getSharedPreferences("orderlist",Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = pref.edit();
+                String serialized = pref.getString("PREF_KEY_STRINGS", null);//if the list is null, add the same order as in DB
+                List<String> list = new LinkedList(Arrays.asList(TextUtils.split(serialized, ",")));
+                list.add(ID);
+                editor.remove("PREF_KEY_STRINGS");
+                editor.commit();
+                editor.putString("PREF_KEY_STRINGS", TextUtils.join(",", list));
+                editor.commit();
             } else {
                 toast = Toast.makeText(context, getString(R.string.addfriend_friend_exists), Toast.LENGTH_SHORT);
             }
