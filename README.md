@@ -22,7 +22,7 @@ For a list of which devices currently run Antox, visit our <a href="http://wiki.
 
 ###Compiling Antox From Source
 - Download https://developer.android.com/sdk/installing/studio.html
-- In Android Studio, go to Help>Check For Updates. As of writing, the latest version of AS is 0.5.7
+- In Android Studio, go to Help>Check For Updates. As of writing, the latest version of AS is 0.5.8
 - In Android Studio again, go to Tools>Android>SDK Manager. Make sure you're using the latest SDK tools and SDK Build tools (22.6.2 and 19.0.3 respectively as of writing)
 - To import the project, go to File>Import Project. Select the build.gradle file in the root of the Antox folder
 - Download the latest jToxcore binaries from http://jenkins.tox.im/job/jToxcore_Android/lastSuccessfulBuild/artifact/*zip*/archive.zip
