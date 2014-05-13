@@ -87,7 +87,7 @@ public class ToxService extends IntentService {
                 notify.putExtra("key", key);
                 LocalBroadcastManager.getInstance(this).sendBroadcast(notify);
 
-                if(pref.getString("notifications", "") != "1") {
+                if(pref.getString("notifications", "") != "0") {
                     /* Notifications */
                     if (!(toxSingleton.rightPaneActive && toxSingleton.activeFriendKey.equals(key))
                             && !(toxSingleton.leftPaneActive)) {
@@ -270,7 +270,7 @@ public class ToxService extends IntentService {
                     db.addFriendRequest(key, message);
                 db.close();
 
-                if(pref.getString("notifications", "") != "1") {
+                if(pref.getString("notifications", "") != "0") {
                 /* Notification */
                     if (!toxSingleton.leftPaneActive) {
                         NotificationCompat.Builder mBuilder =
