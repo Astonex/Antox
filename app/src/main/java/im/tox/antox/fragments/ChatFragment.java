@@ -65,6 +65,11 @@ public class ChatFragment extends Fragment {
     }
 
     public void updateChat(ArrayList<Message> messages) {
+        if(isDetached())
+        {
+            return;
+        }
+
         AntoxDB db = new AntoxDB(getActivity().getApplicationContext());
         if(!db.isFriendBlocked(toxSingleton.activeFriendKey)) {
             if (messages.size() >= 0) {
