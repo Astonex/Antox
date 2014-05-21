@@ -529,16 +529,20 @@ public class MainActivity extends ActionBarActivity{
             setTitle(activeTitle);
 
             // Hide add friend icon
-            MenuItem af = menu.findItem(R.id.add_friend);
-            MenuItemCompat.setShowAsAction(af,MenuItem.SHOW_AS_ACTION_NEVER);
+            if(menu != null) { // menu can be null if chat pane is opened directly from a resumed/previously unrendered app state.
+                MenuItem af = menu.findItem(R.id.add_friend);
+                MenuItemCompat.setShowAsAction(af, MenuItem.SHOW_AS_ACTION_NEVER);
+            }
 
             //Hide group menu
             ActionBar bar = MainActivity.this.getSupportActionBar();
             bar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
 
             // Hide search icon
-            MenuItem search = menu.findItem(R.id.search_friend);
-            MenuItemCompat.setShowAsAction(search, MenuItem.SHOW_AS_ACTION_NEVER);
+            if(menu != null) {
+                MenuItem search = menu.findItem(R.id.search_friend);
+                MenuItemCompat.setShowAsAction(search, MenuItem.SHOW_AS_ACTION_NEVER);
+            }
 
             //ag.setVisible(true);
             /* Hide until functionality is implemented to avoid confusion
