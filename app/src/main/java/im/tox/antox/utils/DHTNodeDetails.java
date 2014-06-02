@@ -41,7 +41,7 @@ public class DHTNodeDetails extends AsyncTask<Void, Void, Void> {
     protected Void doInBackground(Void... params) {
         try {
             // Connect to the web site
-            Document document = Jsoup.connect("http://wiki.tox.im/Nodes").timeout(10000).get();
+            Document document = Jsoup.connect("https://wiki.tox.im/Nodes").timeout(10000).get();
             Elements nodeRows = document.getElementsByTag("tr");
 
             File folder = new File(Environment.getExternalStorageDirectory() + "/Antox");
