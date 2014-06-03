@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,15 +16,23 @@ import android.widget.ListView;
 
 import java.util.ArrayList;
 
+import im.tox.antox.R;
+import im.tox.antox.activities.MainActivity;
+import im.tox.antox.adapters.ChatMessagesAdapter;
 import im.tox.antox.data.AntoxDB;
+import im.tox.antox.tox.ToxService;
+import im.tox.antox.tox.ToxSingleton;
 import im.tox.antox.utils.ChatMessages;
 import im.tox.antox.utils.Constants;
 import im.tox.antox.utils.Message;
-import im.tox.antox.R;
-import im.tox.antox.tox.ToxService;
-import im.tox.antox.tox.ToxSingleton;
-import im.tox.antox.activities.*;
-import im.tox.antox.adapters.ChatMessagesAdapter;
+import im.tox.antox.utils.Triple;
+import im.tox.antox.utils.Tuple;
+import rx.Observable;
+import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
+import rx.functions.Func1;
+import rx.schedulers.Schedulers;
 
 /**
  * Created by ollie on 28/02/14.
@@ -39,13 +48,40 @@ public class ChatFragment extends Fragment {
     private EditText messageBox;
     private MainActivity main_act;
     ToxSingleton toxSingleton = ToxSingleton.getInstance();
+    Subscription activeKeySub;
 
 
     public ChatFragment() {
-
     }
 
+    @Override
+    public void onResume(){
+        super.onResume();
+        Observable<Tuple<String,Boolean>> activeKeyAndIsFriendAndMessagesSubject = toxSingleton.activeKeyAndIsFriendSubject;
+        activeKeySub = activeKeyAndIsFriendAndMessagesSubject.map(new Func1<Tuple<String, Boolean>, Triple<String, Boolean, ArrayList<Message>>>() {
+            @Override
+            public Triple<String, Boolean, ArrayList<Message>> call(Tuple<String, Boolean> tup) {
+                String key = tup.x;
+                boolean isFriend = tup.y;
+                AntoxDB antoxDB = new AntoxDB(getActivity());
+                ArrayList<Message> messageList = antoxDB.getMessageList(key);
+                antoxDB.close();
+                return new Triple<String, Boolean, ArrayList<Message>>(key, isFriend, messageList);
+            }
+        }).subscribe(new Action1<Triple<String, Boolean, ArrayList<Message>>>() {
+            @Override
+            public void call(Triple<String, Boolean, ArrayList<Message>> trip) {
+                Log.d("ChatFragment", "Updating chat");
+                updateChat(trip.z);
+            }
+        });
+    }
 
+    @Override
+    public void onPause(){
+        super.onPause();
+        activeKeySub.unsubscribe();
+    }
 
     public void sendMessage() {
         AntoxDB db = new AntoxDB(getActivity().getApplicationContext());
@@ -100,7 +136,6 @@ public class ChatFragment extends Fragment {
                 builder.setCancelable(true)
                         .setItems(items, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int index) {
-
                                 switch (index) {
                                     case 0:
                                         AntoxDB db = new AntoxDB(getActivity().getApplicationContext());

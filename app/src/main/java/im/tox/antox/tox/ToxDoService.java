@@ -1,9 +1,9 @@
 package im.tox.antox.tox;
 
 import android.app.IntentService;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
@@ -13,15 +13,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import im.tox.antox.R;
-import im.tox.antox.callbacks.AntoxOnTypingChangeCallback;
-import im.tox.antox.data.AntoxDB;
-import im.tox.antox.utils.AntoxFriend;
-import im.tox.antox.utils.AntoxFriendList;
-import im.tox.antox.utils.Constants;
-import im.tox.antox.utils.DhtNode;
-import im.tox.antox.utils.Friend;
-import im.tox.antox.utils.FriendRequest;
 import im.tox.antox.callbacks.AntoxOnActionCallback;
 import im.tox.antox.callbacks.AntoxOnConnectionStatusCallback;
 import im.tox.antox.callbacks.AntoxOnFriendRequestCallback;
@@ -29,8 +20,15 @@ import im.tox.antox.callbacks.AntoxOnMessageCallback;
 import im.tox.antox.callbacks.AntoxOnNameChangeCallback;
 import im.tox.antox.callbacks.AntoxOnReadReceiptCallback;
 import im.tox.antox.callbacks.AntoxOnStatusMessageCallback;
+import im.tox.antox.callbacks.AntoxOnTypingChangeCallback;
 import im.tox.antox.callbacks.AntoxOnUserStatusCallback;
-import im.tox.antox.utils.UserDetails;
+import im.tox.antox.data.AntoxDB;
+import im.tox.antox.utils.AntoxFriend;
+import im.tox.antox.utils.AntoxFriendList;
+import im.tox.antox.utils.Constants;
+import im.tox.antox.utils.DhtNode;
+import im.tox.antox.utils.Friend;
+import im.tox.antox.utils.FriendRequest;
 import im.tox.jtoxcore.ToxException;
 import im.tox.jtoxcore.ToxUserStatus;
 
@@ -75,7 +73,7 @@ public class ToxDoService extends IntentService {
 
                 /* Populate tox friends list with saved friends in database */
                 db = new AntoxDB(getApplicationContext());
-                ArrayList<Friend> friends = db.getFriendList(Constants.OPTION_ALL_FRIENDS);
+                ArrayList<Friend> friends = db.getFriendList();
                 db.close();
 
                 toxSingleton.friendsList = (AntoxFriendList) toxSingleton.jTox.getFriendList();
@@ -115,9 +113,9 @@ public class ToxDoService extends IntentService {
                 toxSingleton.callbackHandler.registerOnUserStatusCallback(antoxOnUserStatusCallback);
                 toxSingleton.callbackHandler.registerOnTypingChangeCallback(antoxOnTypingChangeCallback);
 
-                SharedPreferences settingsPref = getSharedPreferences("settings", Context.MODE_PRIVATE);
+                SharedPreferences settingsPref = PreferenceManager.getDefaultSharedPreferences(this);
                 SharedPreferences.Editor editor = settingsPref.edit();
-                editor.putString("user_key", toxSingleton.jTox.getAddress());
+                editor.putString("tox_id", toxSingleton.jTox.getAddress());
                 editor.commit();
 
 
@@ -134,18 +132,20 @@ public class ToxDoService extends IntentService {
                         Log.d(TAG, "Connected to node: " + DhtNode.owner.get(DhtNode.counter));
 
                         /* Load user details */
-                        UserDetails.username = settingsPref.getString("saved_name_hint", "");
-                        if (settingsPref.getString("saved_status_hint", "").equals(getString(R.string.status_away)))
-                            UserDetails.status = ToxUserStatus.TOX_USERSTATUS_AWAY;
-                        else if (settingsPref.getString("saved_status_hint", "").equals(getString(R.string.status_busy)))
-                            UserDetails.status = ToxUserStatus.TOX_USERSTATUS_BUSY;
-                        else
-                            UserDetails.status = ToxUserStatus.TOX_USERSTATUS_NONE;
-                        UserDetails.note = settingsPref.getString("saved_note_hint", "");
+                        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
 
-                        toxSingleton.jTox.setName(UserDetails.username);
-                        toxSingleton.jTox.setStatusMessage(UserDetails.note);
-                        toxSingleton.jTox.setUserStatus(UserDetails.status);
+                        toxSingleton.jTox.setName(preferences.getString("nickname", ""));
+
+                        toxSingleton.jTox.setStatusMessage(preferences.getString("status_message", ""));
+
+                        ToxUserStatus newStatus = ToxUserStatus.TOX_USERSTATUS_NONE;
+                        String newStatusString = preferences.getString("status", "");
+                        if(newStatusString.equals("2"))
+                            newStatus = ToxUserStatus.TOX_USERSTATUS_AWAY;
+                        if(newStatusString.equals("3"))
+                            newStatus = ToxUserStatus.TOX_USERSTATUS_BUSY;
+
+                        toxSingleton.jTox.setUserStatus(newStatus);
                     }
 
                 } catch (UnknownHostException e) {
