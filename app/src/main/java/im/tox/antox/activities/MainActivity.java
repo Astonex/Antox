@@ -1,23 +1,23 @@
 package im.tox.antox.activities;
 
 import android.app.AlertDialog;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.SlidingPaneLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
@@ -25,21 +25,30 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.Toast;
+import android.widget.ImageButton;
+
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.WriterException;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Locale;
 
+import im.tox.QR.Contents;
+import im.tox.QR.QRCodeEncode;
 import im.tox.antox.R;
 import im.tox.antox.adapters.LeftPaneAdapter;
 import im.tox.antox.data.AntoxDB;
 import im.tox.antox.fragments.ChatFragment;
-import im.tox.antox.fragments.ContactsFragment;
+import im.tox.antox.fragments.DialogToxID;
+import im.tox.antox.fragments.FriendRequestFragment;
+import im.tox.antox.fragments.PinDialogFragment;
 import im.tox.antox.tox.ToxDoService;
 import im.tox.antox.tox.ToxSingleton;
-import im.tox.antox.utils.AntoxFriend;
 import im.tox.antox.utils.Constants;
 import im.tox.antox.utils.DHTNodeDetails;
 import im.tox.antox.utils.DhtNode;
@@ -58,7 +67,7 @@ import rx.functions.Action1;
  * @author Mark Winter (Astonex)
  */
 
-public class MainActivity extends ActionBarActivity{
+public class MainActivity extends ActionBarActivity implements DialogToxID.DialogToxIDListener {
 
     private static final String TAG = "im.tox.antox.activities.MainActivity";
 
@@ -75,88 +84,22 @@ public class MainActivity extends ActionBarActivity{
      */
     public String activeTitle = "Antox";
 
-
-    public ArrayList<String> leftPaneKeyList;
-
     private final ToxSingleton toxSingleton = ToxSingleton.getInstance();
 
-    public ArrayList<Friend> friendList;
     Subscription activeKeySub;
+    Subscription chatActiveSub;
 
     /*
      * Allows menu to be accessed from menu unrelated subroutines such as the pane opened
      */
     private Menu menu;
 
-    private final BroadcastReceiver receiver = new BroadcastReceiver() {
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            Log.d(TAG, "broadcast received");
-            String action = intent.getStringExtra("action");
-            if (action != null) {
-                Log.d(TAG, "action: " + action);
-                if (action.equals(Constants.UPDATE_LEFT_PANE)) {
-                    updateLeftPane();
-                } else if (action.equals(Constants.REJECT_FRIEND_REQUEST)) {
-                    updateLeftPane();
-                    Context ctx = getApplicationContext();
-                    String text = getString(R.string.friendrequest_deleted);
-                    int duration = Toast.LENGTH_SHORT;
-                    Toast toast = Toast.makeText(ctx, text, duration);
-                    toast.show();
-                } else if (action.equals(Constants.UPDATE_MESSAGES)) {
-                    updateLeftPane();
-                    if (intent.getStringExtra("key").equals(toxSingleton.activeFriendKey)) {
-                        updateChat(toxSingleton.activeFriendKey);
-                    }
-                } else if (action.equals(Constants.ACCEPT_FRIEND_REQUEST)) {
-                    updateLeftPane();
-                    Context ctx = getApplicationContext();
-                    String text = getString(R.string.friendrequest_accepted);
-                    int duration = Toast.LENGTH_SHORT;
-                    Toast toast = Toast.makeText(ctx, text, duration);
-                    toast.show();
-                } else if (action.equals(Constants.UPDATE)) {
-                    updateLeftPane();
-                    if (toxSingleton.rightPaneActive) {
-                        activeTitle = toxSingleton.friendsList.getById(toxSingleton.activeFriendKey).getName();
-                        setTitle(activeTitle);
-                    }
-                }
-            }
-        }
-    };
-
-
-    public void updateChat(String key) {
-        /*
-        if(toxSingleton.friendsList.getById(key)!=null
-                && toxSingleton.friendsList.getById(key).getName()!=null ){
-            AntoxDB db = new AntoxDB(this);
-            if (toxSingleton.rightPaneActive) {
-                db.markIncomingMessagesRead(key);
-            }
-            try {
-                chat.updateChat(db.getMessageList(key));
-                db.close();
-                updateLeftPane();
-            } catch (NullPointerException e) {
-                e.printStackTrace();
-                Log.d(TAG, e.toString());
-            }
-        }
-        */
-    }
-
     @Override
     protected void onNewIntent(Intent i) {
         if (i.getAction() != null) {
-            if (i.getAction().equals(Constants.SWITCH_TO_FRIEND) && toxSingleton.friendsList.getById(i.getStringExtra("key")) != null) {
+            if (i.getAction().equals(Constants.SWITCH_TO_FRIEND) && toxSingleton.getAntoxFriend(i.getStringExtra("key")) != null) {
                 String key = i.getStringExtra("key");
                 Fragment newFragment = new ChatFragment();
-                toxSingleton.activeFriendKey = key;
-                toxSingleton.activeFriendRequestKey = null;
                 tempRightPaneActive = true;
                 FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
                 transaction.replace(R.id.right_pane, newFragment);
@@ -253,10 +196,6 @@ public class MainActivity extends ActionBarActivity{
             config.locale = locale;
             getApplicationContext().getResources().updateConfiguration(config, getApplicationContext().getResources().getDisplayMetrics());
         }
-
-        toxSingleton.activeFriendKey=null;
-        toxSingleton.activeFriendRequestKey=null;
-        toxSingleton.leftPaneActive = true;
 
         /* Check if connected to the Internet */
         ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -363,38 +302,10 @@ public class MainActivity extends ActionBarActivity{
         }
         return language;
     }
-    private Message mostRecentMessage(String key, ArrayList<Message> messages) {
-        for (int i=0; i<messages.size(); i++) {
-            if (key.equals(messages.get(i).key)) {
-                return messages.get(i);
-            }
-        }
-        return new Message(-1, key, "", false, true, true, true, new Timestamp(0,0,0,0,0,0,0));
-    }
-
-    private int countUnreadMessages(String key, ArrayList<Message> messages) {
-        int counter = 0;
-        if(key!=null) {
-            Message m;
-            for (int i = 0; i < messages.size(); i++) {
-                m = messages.get(i);
-                if (m.key.equals(key) && !m.is_outgoing) {
-                    if (!m.has_been_read) {
-                        counter += 1;
-                    } else {
-                        return counter;
-                    }
-                }
-            }
-        }
-        return counter;
-    }
 
     public void updateLeftPane() {
-
         toxSingleton.updateFriendsList(getApplicationContext());
         toxSingleton.updateMessages(getApplicationContext());
-
     }
 
     /**
@@ -413,29 +324,58 @@ public class MainActivity extends ActionBarActivity{
     }
     private void clearUselessNotifications () {
         AntoxDB db = new AntoxDB(getApplicationContext());
-        if (toxSingleton.rightPaneActive && toxSingleton.activeFriendKey != null
-                && toxSingleton.friendsList.all().size() > 0) {
-            AntoxFriend friend = toxSingleton.friendsList.getById(toxSingleton.activeFriendKey);
-            toxSingleton.mNotificationManager.cancel(friend.getFriendnumber());
-        }
+        //todo: clear notifications if rightpane active
         db.close();
     }
 
     @Override
     public void onResume(){
         super.onResume();
+        Log.d("MainActivity","onResume");
+        chatActiveSub = toxSingleton.chatActiveAndKey.observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Tuple<String,Boolean>>() {
+                    @Override
+                    public void call(Tuple<String,Boolean> t) {
+                        String activeKey = t.x;
+                        boolean chatActive = t.y;
+                        if (chatActive) {
+                            AntoxDB db = new AntoxDB(getApplicationContext());
+                            db.markIncomingMessagesRead(activeKey);
+                            db.close();
+                            toxSingleton.updateMessages(getApplicationContext());
+                            toxSingleton.updateFriendsList(getApplicationContext());
+                        }
+
+                    }
+                });
         activeKeySub = toxSingleton.activeKeyAndIsFriendSubject.distinctUntilChanged().observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Tuple<String,Boolean>>() {
                     @Override
                     public void call(Tuple<String,Boolean> activeKeyAndIfFriend) {
                         String activeKey = activeKeyAndIfFriend.x;
                         boolean isFriend = activeKeyAndIfFriend.y;
-                        if (isFriend) {
-                            ChatFragment newFragment = new ChatFragment();
-                            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-                            transaction.replace(R.id.right_pane, newFragment);
-                            transaction.addToBackStack(null);
-                            transaction.commit();
+                        if (activeKey.equals("")) {
+                            pane.openPane();
+                            Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.right_pane);
+                            if (fragment != null) {
+                                getSupportFragmentManager().beginTransaction().remove(fragment).commit();
+                            }
+                        } else {
+                            if (isFriend) {
+                                Log.d("MainActivity","chat fragment creation, isFriend: " + isFriend);
+                                ChatFragment newFragment = new ChatFragment(activeKey);
+                                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                                transaction.replace(R.id.right_pane, newFragment);
+                                transaction.addToBackStack(null);
+                                transaction.commit();
+                            } else {
+                                Log.d("MainActivity","friend request fragment creation, isFriend: " + isFriend);
+                                FriendRequestFragment newFragment = new FriendRequestFragment(activeKey);
+                                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                                transaction.replace(R.id.right_pane, newFragment);
+                                transaction.addToBackStack(null);
+                                transaction.commit();
+                            }
                             pane.closePane();
                         }
                     }
@@ -445,32 +385,10 @@ public class MainActivity extends ActionBarActivity{
     @Override
     public void onPause(){
         super.onPause();
+        Log.d("MainActivity", "onPause");
         activeKeySub.unsubscribe();
+        chatActiveSub.unsubscribe();
     }
-    /*
-    @Override
-    public void onResume() {
-        super.onResume();
-        Log.i(TAG, "onResume");
-        toxSingleton.rightPaneActive = tempRightPaneActive;
-        IntentFilter filter = new IntentFilter(Constants.BROADCAST_ACTION);
-        LocalBroadcastManager.getInstance(this).registerReceiver(receiver, filter);
-        if (toxSingleton.activeFriendKey != null) {
-            updateChat(toxSingleton.activeFriendKey);
-        }
-        clearUselessNotifications();
-    }
-
-    @Override
-    public void onPause() {
-        Log.i(TAG, "onPause");
-        tempRightPaneActive = toxSingleton.rightPaneActive;
-        toxSingleton.rightPaneActive = false;
-        //LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
-        toxSingleton.leftPaneActive = false;
-        super.onPause();
-    }
-    */
 
     @Override
     public void onStop() {
@@ -494,7 +412,6 @@ public class MainActivity extends ActionBarActivity{
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         //the class menu property is now the initialized menu
@@ -558,36 +475,16 @@ public class MainActivity extends ActionBarActivity{
 
         @Override
         public void onPanelClosed(View view) {
-            getSupportActionBar().setDisplayShowTitleEnabled(true);
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            setTitle(activeTitle);
-
-            // Hide add friend icon
-            MenuItem af = menu.findItem(R.id.add_friend);
-            MenuItemCompat.setShowAsAction(af,MenuItem.SHOW_AS_ACTION_NEVER);
-
-            toxSingleton.rightPaneActive = true;
-            toxSingleton.leftPaneActive = false;
-            if(toxSingleton.activeFriendKey!=null){
-                updateChat(toxSingleton.activeFriendKey);
-            }
+            toxSingleton.rightPaneOpen.onNext(true);
 
             clearUselessNotifications();
         }
 
         @Override
         public void onPanelOpened(View view) {
-            getSupportActionBar().setDisplayShowTitleEnabled(false);
-            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-
-            // Show add friend icon
-            MenuItem af = menu.findItem(R.id.add_friend);
-            MenuItemCompat.setShowAsAction(af,MenuItem.SHOW_AS_ACTION_IF_ROOM);
+            toxSingleton.rightPaneOpen.onNext(false);
 
             supportInvalidateOptionsMenu();
-
-            toxSingleton.rightPaneActive =false;
-            toxSingleton.leftPaneActive = true;
         }
 
         @Override
@@ -596,5 +493,20 @@ public class MainActivity extends ActionBarActivity{
 
     }
 
+    /* Needed for Tox ID dialog in settings fragment */
+    @Override
+    public void onDialogClick(DialogFragment fragment) {
 
+    }
+
+    /* Method for the Tox ID copy button in settings fragment */
+    public void copyToxID(View view) {
+        /* Copy ID to clipboard */
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+        Context context = getApplicationContext();
+        android.text.ClipboardManager clipboard = (android.text.ClipboardManager) context
+                .getSystemService(context.CLIPBOARD_SERVICE);
+        clipboard.setText(sharedPreferences.getString("tox_id", ""));
+    }
 }

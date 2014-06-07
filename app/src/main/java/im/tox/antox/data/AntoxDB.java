@@ -19,7 +19,6 @@ import im.tox.antox.utils.Constants;
 import im.tox.antox.utils.Friend;
 import im.tox.antox.utils.FriendRequest;
 import im.tox.antox.utils.Message;
-import im.tox.antox.utils.PrettyTimestamp;
 import im.tox.antox.utils.Tuple;
 import im.tox.jtoxcore.ToxUserStatus;
 
@@ -109,6 +108,9 @@ public class AntoxDB extends SQLiteOpenHelper {
 
         if(username.contains("@"))
             username = username.substring(0, username.indexOf("@"));
+
+        if(username == null || username.length() == 0)
+            username = key.substring(0,7);
 
         ContentValues values = new ContentValues();
         values.put(Constants.COLUMN_NAME_KEY, key);
@@ -413,6 +415,21 @@ public class AntoxDB extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         db.delete(Constants.TABLE_FRIEND_REQUEST, Constants.COLUMN_NAME_KEY + "='" + key + "'", null);
         db.close();
+    }
+
+    public String getFriendRequestMessage(String key) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String selectQuery = "SELECT message FROM " + Constants.TABLE_FRIEND_REQUEST + " WHERE tox_key='" + key + "'";
+
+        Cursor cursor = db.rawQuery(selectQuery, null);
+        String message = "";
+        if (cursor.moveToFirst()) {
+            message = cursor.getString(0);
+        }
+        cursor.close();
+        db.close();
+
+        return message;
     }
 
     public void deleteChat(String key) {

@@ -31,9 +31,11 @@ import im.tox.QR.IntentResult;
 import im.tox.antox.R;
 import im.tox.antox.data.AntoxDB;
 import im.tox.antox.fragments.PinDialogFragment;
-import im.tox.antox.tox.ToxService;
+import im.tox.antox.tox.ToxSingleton;
 import im.tox.antox.utils.Constants;
 import im.tox.antox.utils.DhtNode;
+import im.tox.jtoxcore.FriendExistsException;
+import im.tox.jtoxcore.ToxException;
 
 public class AddFriendActivity extends ActionBarActivity implements PinDialogFragment.PinDialogListener {
 
@@ -150,11 +152,15 @@ public class AddFriendActivity extends ActionBarActivity implements PinDialogFra
             String[] friendData = {ID, message, alias};
 
             AntoxDB db = new AntoxDB(getApplicationContext());
-            if (!db.doesFriendExist(friendID.getText().toString())) {
-                Intent addFriend = new Intent(this, ToxService.class);
-                addFriend.setAction(Constants.ADD_FRIEND);
-                addFriend.putExtra("friendData", friendData);
-                this.startService(addFriend);
+            if (!db.doesFriendExist(ID)) {
+                try {
+                    ToxSingleton toxSingleton = ToxSingleton.getInstance();
+                    toxSingleton.jTox.addFriend(friendData[0], friendData[1]);
+                } catch (ToxException e) {
+                    e.printStackTrace();
+                } catch (FriendExistsException e) {
+                    e.printStackTrace();
+                }
 
                 if (!alias.equals(""))
                     ID = alias;
