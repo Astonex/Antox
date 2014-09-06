@@ -69,7 +69,7 @@ public class ToxDoService extends Service {
             }
         };
         serviceWL.acquire();
-        startForeground(1, mBuilder.build());
+        startForeground(-1, mBuilder.build());
         doThread.start();
     }
 
