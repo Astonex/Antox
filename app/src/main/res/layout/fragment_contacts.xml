@@ -67,7 +67,8 @@
         android:id="@+id/fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center|bottom"
+        android:layout_gravity="end|bottom"
+        android:layout_margin="@dimen/margin_medium"
         android:onClick="onClickAddFriend"
         app:floatingActionButtonColor="@color/fab_colors_list" />
 
