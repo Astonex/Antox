@@ -22,7 +22,7 @@ public class LeftPaneFragment extends Fragment {
     public class LeftPagerAdapter extends FragmentPagerAdapter {
 
         private final String[] TITLES = { getString(R.string.titles_recent),
-                getString(R.string.titles_contacts), getString(R.string.titles_settings)};
+                getString(R.string.titles_contacts)};
 
         public LeftPagerAdapter(FragmentManager fm) {
             super(fm);
@@ -39,7 +39,6 @@ public class LeftPaneFragment extends Fragment {
 
             case 0: return new RecentFragment();
             case 1: return new ContactsFragment();
-            case 2: return new SettingsFragment();
             default: return new ContactsFragment();
             }
         }
@@ -49,7 +48,7 @@ public class LeftPaneFragment extends Fragment {
             return TITLES.length;
         }
     }
-    private MainActivity main_act;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -57,8 +56,6 @@ public class LeftPaneFragment extends Fragment {
          * Stores a 2 dimensional string array holding friend details. Will be populated
          * by a tox function once implemented
          */
-
-        main_act = (MainActivity) getActivity();
 
         View rootView = inflater.inflate(R.layout.fragment_leftpane, container, false);
 
