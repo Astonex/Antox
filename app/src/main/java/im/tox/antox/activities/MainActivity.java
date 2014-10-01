@@ -10,28 +10,35 @@ import android.content.res.Configuration;
 import android.media.AudioManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.v4.app.DialogFragment;
+import android.support.v4.app.ActionBarDrawerToggle;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.AdapterView;
+import android.widget.ListAdapter;
+import android.widget.ListView;
+import android.widget.Toast;
 
-import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Locale;
 
 import im.tox.antox.R;
 import im.tox.antox.data.AntoxDB;
-import im.tox.antox.fragments.DialogToxID;
 import im.tox.antox.tox.ToxSingleton;
 import im.tox.antox.utils.AntoxFriend;
 import im.tox.antox.utils.BitmapManager;
 import im.tox.antox.utils.Constants;
+import im.tox.antox.utils.DrawerArrayAdapter;
+import im.tox.antox.utils.DrawerItem;
 import im.tox.antox.utils.Triple;
 import im.tox.jtoxcore.ToxCallType;
 import im.tox.jtoxcore.ToxCodecSettings;
@@ -44,19 +51,72 @@ import rx.functions.Action1;
  * @author Mark Winter (Astonex)
  */
 
-public class MainActivity extends ActionBarActivity implements DialogToxID.DialogToxIDListener {
+public class MainActivity extends ActionBarActivity {
 
+    private final ToxSingleton toxSingleton = ToxSingleton.getInstance();
     public DrawerLayout pane;
     public View chat;
     public View request;
-
-    private final ToxSingleton toxSingleton = ToxSingleton.getInstance();
-
     Subscription activeKeySub;
     Subscription chatActiveSub;
     Subscription doClosePaneSub;
 
     SharedPreferences preferences;
+
+    private DrawerLayout mDrawerLayout;
+    private ListView mDrawerList;
+    private ActionBarDrawerToggle mDrawerToggle;
+
+    private void selectItem(int position) {
+        if (position == 0) {
+            Intent intent = new Intent(this,
+                    Settings.class);
+            startActivity(intent);
+        } else if (position == 1) {
+            Intent intent = new Intent(this,
+                    ProfileSettings.class);
+            startActivity(intent);
+        } else if (position == 2) {
+            Toast.makeText(this, "Coming soon...", Toast.LENGTH_LONG).show();
+            //TODO: support groups
+        } else if (position == 3) {
+            Intent intent = new Intent(this,
+                    About.class);
+            startActivity(intent);
+        } else if (position == 4) {
+            Intent intent = new Intent(this,
+                    License.class);
+            startActivity(intent);
+        }
+        // update selected item and title, then close the drawer
+        mDrawerList.setItemChecked(position, true);
+        mDrawerLayout.closeDrawer(mDrawerList);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == android.R.id.home) {
+            if (mDrawerToggle.onOptionsItemSelected(item)) {
+                return true;
+            }
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        // Sync the toggle state after onRestoreInstanceState has occurred.
+        mDrawerToggle.syncState();
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        // Pass any configuration change to the drawer toggls
+        mDrawerToggle.onConfigurationChanged(newConfig);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,7 +133,7 @@ public class MainActivity extends ActionBarActivity implements DialogToxID.Dialo
             SharedPreferences.Editor editor = preferences.edit();
             String currentLanguage = getResources().getConfiguration().locale.getCountry().toLowerCase();
             editor.putString("language", currentLanguage);
-            editor.commit();
+            editor.apply();
         } else {
             Locale locale = new Locale(language);
             Locale.setDefault(locale);
@@ -83,6 +143,49 @@ public class MainActivity extends ActionBarActivity implements DialogToxID.Dialo
         }
 
         setContentView(R.layout.activity_main);
+
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.slidingpane_layout);
+        mDrawerList = (ListView) findViewById(R.id.left_drawer);
+
+        // set a custom shadow that overlays the main content when the drawer opens
+        mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
+        ArrayList<DrawerItem> list = new ArrayList<DrawerItem>();
+        list.add(new DrawerItem(getString(R.string.n_settings), R.drawable.ic_menu_settings));
+        list.add(new DrawerItem(getString(R.string.n_profile_options), R.drawable.ic_profile));
+        list.add(new DrawerItem(getString(R.string.n_create_group), R.drawable.ic_social_add_group));
+        list.add(new DrawerItem(getString(R.string.n_about), R.drawable.ic_menu_help));
+        list.add(new DrawerItem(getString(R.string.n_open_source), R.drawable.ic_opensource));
+        ListAdapter drawerListAdapter = new DrawerArrayAdapter(
+                this,
+                R.layout.rowlayout_drawer,
+                list);
+        mDrawerList.setAdapter(drawerListAdapter);
+        mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
+
+        // enable ActionBar app icon to behave as action to toggle nav drawer
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setHomeButtonEnabled(true);
+        }
+
+        // ActionBarDrawerToggle ties together the the proper interactions
+        // between the sliding drawer and the action bar app icon
+        mDrawerToggle = new ActionBarDrawerToggle(
+                this,                  /* host Activity */
+                mDrawerLayout,         /* DrawerLayout object */
+                R.drawable.ic_drawer,  /* nav drawer image to replace 'Up' caret */
+                R.string.drawer_open,  /* "open drawer" description for accessibility */
+                R.string.drawer_close  /* "close drawer" description for accessibility */
+        ) {
+            public void onDrawerClosed(View view) {
+                ActivityCompat.invalidateOptionsMenu(MainActivity.this);
+            }
+
+            public void onDrawerOpened(View drawerView) {
+                ActivityCompat.invalidateOptionsMenu(MainActivity.this);
+            }
+        };
+        mDrawerLayout.setDrawerListener(mDrawerToggle);
 
         getSupportActionBar().hide();
 
@@ -135,7 +238,7 @@ public class MainActivity extends ActionBarActivity implements DialogToxID.Dialo
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         //Init Bitmap Manager
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
             new BitmapManager();
 
         //Get epoch time for online/offline messages
@@ -184,19 +287,19 @@ public class MainActivity extends ActionBarActivity implements DialogToxID.Dialo
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode==Constants.ADD_FRIEND_REQUEST_CODE && resultCode==RESULT_OK){
+        if (requestCode == Constants.ADD_FRIEND_REQUEST_CODE && resultCode == RESULT_OK) {
             toxSingleton.updateFriendsList(this);
         }
     }
 
     @Override
-    public void onDestroy(){
+    public void onDestroy() {
         super.onDestroy();
         toxSingleton.activeKey = "";
     }
 
     @Override
-    public void onResume(){
+    public void onResume() {
         super.onResume();
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
         doClosePaneSub = toxSingleton.doClosePaneSubject.observeOn(AndroidSchedulers.mainThread())
@@ -217,7 +320,7 @@ public class MainActivity extends ActionBarActivity implements DialogToxID.Dialo
                         boolean rightPaneActive = rightPaneActiveAndActiveKeyAndIfFriend.x;
                         String activeKey = rightPaneActiveAndActiveKeyAndIfFriend.y;
                         boolean isFriend = rightPaneActiveAndActiveKeyAndIfFriend.z;
-                        Log.d("activeKeySub","oldkey: " + toxSingleton.activeKey + " newkey: " + activeKey + " isfriend: " + isFriend);
+                        Log.d("activeKeySub", "oldkey: " + toxSingleton.activeKey + " newkey: " + activeKey + " isfriend: " + isFriend);
                         if (activeKey.equals("")) {
                             chat.setVisibility(View.GONE);
                         } else {
@@ -247,10 +350,10 @@ public class MainActivity extends ActionBarActivity implements DialogToxID.Dialo
     }
 
     @Override
-    public void onPause(){
+    public void onPause() {
         super.onPause();
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        if(preferences.getBoolean("beenLoaded", false)) {
+        if (preferences.getBoolean("beenLoaded", false)) {
             activeKeySub.unsubscribe();
             doClosePaneSub.unsubscribe();
             toxSingleton.chatActive = false;
@@ -271,26 +374,17 @@ public class MainActivity extends ActionBarActivity implements DialogToxID.Dialo
 
     @Override
     public void onBackPressed() {
-        if(pane.isDrawerOpen(Gravity.RIGHT))
+        if (pane.isDrawerOpen(Gravity.RIGHT))
             pane.closeDrawers();
         else
             finish();
     }
 
-    /* Needed for Tox ID dialog in settings fragment */
-    @Override
-    public void onDialogClick(DialogFragment fragment) {
-
-    }
-
-    /* Method for the Tox ID copy button in settings fragment */
-    public void copyToxID(View view) {
-        /* Copy ID to clipboard */
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-
-        Context context = getApplicationContext();
-        android.text.ClipboardManager clipboard = (android.text.ClipboardManager) context
-                .getSystemService(context.CLIPBOARD_SERVICE);
-        clipboard.setText(sharedPreferences.getString("tox_id", ""));
+    /* The click listner for ListView in the navigation drawer */
+    private class DrawerItemClickListener implements ListView.OnItemClickListener {
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            selectItem(position);
+        }
     }
 }
