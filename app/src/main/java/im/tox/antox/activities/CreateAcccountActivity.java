@@ -205,7 +205,8 @@ public class CreateAcccountActivity extends ActionBarActivity {
             }
                     /* Register Account using toxme.se API */
             try {
-                System.load("/data/data/im.tox.antox/lib/libkaliumjni.so");
+                System.load(this.getFilesDir().getPath()
+                        + "data/im.tox.antox/lib/libkaliumjni.so");
             } catch (Exception e) {
                 Log.d("CreateAccount", "System.load() on kalium failed");
             }
