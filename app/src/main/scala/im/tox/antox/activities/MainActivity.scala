@@ -1,5 +1,7 @@
 package im.tox.antox.activities
 
+import java.util
+
 import android.app.Activity
 import android.app.AlertDialog
 import android.app.NotificationManager
@@ -119,7 +121,7 @@ class MainActivity extends ActionBarActivity {
     mDrawerLayout = findViewById(R.id.drawer_layout).asInstanceOf[DrawerLayout]
     mDrawerList = findViewById(R.id.left_drawer).asInstanceOf[ListView]
     mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START)
-    val list = new ArrayList[DrawerItem]()
+    val list = new util.ArrayList[DrawerItem]()
     list.add(new DrawerItem(getString(R.string.n_settings), R.drawable.ic_menu_settings))
     list.add(new DrawerItem(getString(R.string.n_profile_options), R.drawable.ic_profile))
     list.add(new DrawerItem(getString(R.string.n_create_group), R.drawable.ic_social_add_group))
@@ -181,7 +183,7 @@ class MainActivity extends ActionBarActivity {
     val toxCodecSettings = new ToxCodecSettings(ToxCallType.TYPE_AUDIO, 0, 0, 0, 64000, 20, 48000, 1)
     val mFriend = ToxSingleton.getAntoxFriend(ToxSingleton.activeKey)
     mFriend.foreach(friend => {
-      val userID = friend.getFriendnumber
+      val userID = friend.getFriendnumber()
       try {
         ToxSingleton.jTox.avCall(userID, toxCodecSettings, 10)
       } catch {
@@ -205,6 +207,20 @@ class MainActivity extends ActionBarActivity {
     if (preferences.getBoolean("beenLoaded", false)) {
       ToxSingleton.chatActive = false
     }
+  }
+
+  def onTButtonClick(view: View): Unit = {
+    if(mDrawerLayout.isDrawerOpen(Gravity.LEFT))
+      mDrawerLayout.closeDrawers()
+    else
+      mDrawerLayout.openDrawer(Gravity.LEFT)
+  }
+
+  override def onBackPressed() {
+    if(mDrawerLayout.isDrawerOpen(Gravity.LEFT))
+      mDrawerLayout.closeDrawers()
+    else
+      finish()
   }
 
   def showAlertDialog(context: Context, title: String, message: String) {
