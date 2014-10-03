@@ -24,6 +24,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.AdapterView;
+import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -58,7 +60,6 @@ public class MainActivity extends ActionBarActivity {
     public View chat;
     public View request;
     Subscription activeKeySub;
-    Subscription chatActiveSub;
     Subscription doClosePaneSub;
 
     SharedPreferences preferences;
@@ -88,9 +89,13 @@ public class MainActivity extends ActionBarActivity {
                     License.class);
             startActivity(intent);
         }
-        // update selected item and title, then close the drawer
+
         mDrawerList.setItemChecked(position, true);
         mDrawerLayout.closeDrawer(mDrawerList);
+    }
+
+    public void onTButtonClick(View view) {
+        mDrawerLayout.openDrawer(Gravity.LEFT);
     }
 
     @Override
@@ -149,7 +154,7 @@ public class MainActivity extends ActionBarActivity {
 
         // set a custom shadow that overlays the main content when the drawer opens
         mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
-        ArrayList<DrawerItem> list = new ArrayList<DrawerItem>();
+        ArrayList<DrawerItem> list = new ArrayList<>();
         list.add(new DrawerItem(getString(R.string.n_settings), R.drawable.ic_menu_settings));
         list.add(new DrawerItem(getString(R.string.n_profile_options), R.drawable.ic_profile));
         list.add(new DrawerItem(getString(R.string.n_create_group), R.drawable.ic_social_add_group));
@@ -163,10 +168,10 @@ public class MainActivity extends ActionBarActivity {
         mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
 
         // enable ActionBar app icon to behave as action to toggle nav drawer
-        if (getSupportActionBar() != null) {
+        /*if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setHomeButtonEnabled(true);
-        }
+        }*/
 
         // ActionBarDrawerToggle ties together the the proper interactions
         // between the sliding drawer and the action bar app icon
@@ -207,7 +212,7 @@ public class MainActivity extends ActionBarActivity {
                     getString(R.string.main_not_connected));
         }
 
-        chat = (View) findViewById(R.id.fragment_chat);
+        chat = findViewById(R.id.fragment_chat);
         pane = (DrawerLayout) findViewById(R.id.slidingpane_layout);
         DrawerLayout.DrawerListener paneListener = new DrawerLayout.DrawerListener() {
             @Override
@@ -376,11 +381,13 @@ public class MainActivity extends ActionBarActivity {
     public void onBackPressed() {
         if (pane.isDrawerOpen(Gravity.RIGHT))
             pane.closeDrawers();
+        else if(mDrawerLayout.isDrawerOpen(Gravity.LEFT))
+            mDrawerLayout.closeDrawers();
         else
             finish();
     }
 
-    /* The click listner for ListView in the navigation drawer */
+    /* The click listener for ListView in the navigation drawer */
     private class DrawerItemClickListener implements ListView.OnItemClickListener {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {

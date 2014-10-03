@@ -7,7 +7,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:background="#414141"
+        android:background="@color/actionbar"
         android:orientation="horizontal">
         <LinearLayout
             android:id="@+id/backButton"
@@ -15,8 +15,8 @@
             android:layout_width="24dp"
             android:layout_height="48dp">
         <ImageButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
             android:background="@android:color/transparent"
             android:src="@drawable/abc_ic_ab_back_holo_dark"/>
         </LinearLayout>

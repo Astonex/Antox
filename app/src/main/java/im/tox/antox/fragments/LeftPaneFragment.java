@@ -66,6 +66,7 @@ public class LeftPaneFragment extends Fragment {
         // Bind the tabs to the ViewPager
         PagerSlidingTabStrip tabs = (PagerSlidingTabStrip) rootView.findViewById(R.id.tabs);
         tabs.setViewPager(pager);
+        tabs.setBackgroundColor(getResources().getColor(R.color.actionbar));
 
         return rootView;
     }
