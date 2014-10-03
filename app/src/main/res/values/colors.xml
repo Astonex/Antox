@@ -13,4 +13,6 @@
 
     <color name="fab_normal">#6BC25F</color>
     <color name="fab_pressed">#509147</color>
+
+    <color name="actionbar">#4C4C4C</color>
 </resources>
