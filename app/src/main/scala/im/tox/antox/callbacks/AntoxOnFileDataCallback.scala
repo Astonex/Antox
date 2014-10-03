@@ -2,12 +2,12 @@ package im.tox.antox.callbacks
 
 import android.content.Context
 import android.util.Log
+import im.tox.antox.callbacks.AntoxOnFileDataCallback._
 import im.tox.antox.tox.ToxSingleton
 import im.tox.antox.utils.AntoxFriend
 import im.tox.jtoxcore.callbacks.OnFileDataCallback
-import AntoxOnFileDataCallback._
+
 //remove if not needed
-import scala.collection.JavaConversions._
 
 object AntoxOnFileDataCallback {
 

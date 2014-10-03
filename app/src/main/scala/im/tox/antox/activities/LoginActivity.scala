@@ -2,70 +2,24 @@
 package im.tox.antox.activities
 
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
-import android.os.Build
-import android.os.Bundle
+import android.os.{Build, Bundle}
 import android.preference.PreferenceManager
 import android.support.v7.app.ActionBarActivity
-import android.view.View
-import android.view.WindowManager
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
-import android.widget.EditText
-import android.widget.Spinner
-import android.widget.Toast
-import java.util.ArrayList
-import java.util.Arrays
+import android.view.{View, WindowManager}
+import android.widget.{AdapterView, ArrayAdapter, Spinner, Toast}
 import im.tox.antox.R
 import im.tox.antox.data.UserDB
 import im.tox.antox.tox.ToxDoService
-//remove if not needed
-import scala.collection.JavaConversions._
 
 class LoginActivity extends ActionBarActivity with AdapterView.OnItemSelectedListener {
 
   private var profileSelected: String = _
 
-  protected override def onCreate(savedInstanceState: Bundle) {
-    super.onCreate(savedInstanceState)
-    setContentView(R.layout.activity_login)
-    getSupportActionBar.hide()
-    if (Build.VERSION.SDK_INT != Build.VERSION_CODES.JELLY_BEAN &&
-      Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-      getWindow.setFlags(WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED, WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED)
-    }
-    val preferences = PreferenceManager.getDefaultSharedPreferences(this)
-    val db = new UserDB(this)
-    if (!db.doUsersExist()) {
-      db.close()
-      val createAccount = new Intent(getApplicationContext, classOf[CreateAcccountActivity])
-      startActivity(createAccount)
-      finish()
-    } else if (preferences.getBoolean("loggedin", false)) {
-      db.close()
-      val startTox = new Intent(getApplicationContext, classOf[ToxDoService])
-      getApplicationContext.startService(startTox)
-      val main = new Intent(getApplicationContext, classOf[MainActivity])
-      startActivity(main)
-      finish()
-    } else {
-      val profiles = db.getAllProfiles
-      db.close()
-      val profileSpinner = findViewById(R.id.login_account_name).asInstanceOf[Spinner]
-      val adapter = new ArrayAdapter[String](this, android.R.layout.simple_spinner_dropdown_item, profiles)
-      adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-      profileSpinner.setAdapter(adapter)
-      profileSpinner.setSelection(0)
-      profileSpinner.setOnItemSelectedListener(this)
-    }
-  }
-
   def onItemSelected(parent: AdapterView[_],
-    view: View,
-    pos: Int,
-    id: Long) {
+                     view: View,
+                     pos: Int,
+                     id: Long) {
     profileSelected = parent.getItemAtPosition(pos).toString
   }
 
@@ -118,6 +72,40 @@ class LoginActivity extends ActionBarActivity with AdapterView.OnItemSelectedLis
       if (resultCode == Activity.RESULT_OK) {
         finish()
       }
+    }
+  }
+
+  protected override def onCreate(savedInstanceState: Bundle) {
+    super.onCreate(savedInstanceState)
+    setContentView(R.layout.activity_login)
+    getSupportActionBar.hide()
+    if (Build.VERSION.SDK_INT != Build.VERSION_CODES.JELLY_BEAN &&
+      Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+      getWindow.setFlags(WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED, WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED)
+    }
+    val preferences = PreferenceManager.getDefaultSharedPreferences(this)
+    val db = new UserDB(this)
+    if (!db.doUsersExist()) {
+      db.close()
+      val createAccount = new Intent(getApplicationContext, classOf[CreateAcccountActivity])
+      startActivity(createAccount)
+      finish()
+    } else if (preferences.getBoolean("loggedin", false)) {
+      db.close()
+      val startTox = new Intent(getApplicationContext, classOf[ToxDoService])
+      getApplicationContext.startService(startTox)
+      val main = new Intent(getApplicationContext, classOf[MainActivity])
+      startActivity(main)
+      finish()
+    } else {
+      val profiles = db.getAllProfiles()
+      db.close()
+      val profileSpinner = findViewById(R.id.login_account_name).asInstanceOf[Spinner]
+      val adapter = new ArrayAdapter[String](this, android.R.layout.simple_spinner_dropdown_item, profiles)
+      adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+      profileSpinner.setAdapter(adapter)
+      profileSpinner.setSelection(0)
+      profileSpinner.setOnItemSelectedListener(this)
     }
   }
 }

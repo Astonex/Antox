@@ -1,8 +1,8 @@
 package im.tox.antox.utils
 
 import im.tox.jtoxcore.ToxUserStatus
+
 //remove if not needed
-import scala.collection.JavaConversions._
 
 object UserStatus {
 

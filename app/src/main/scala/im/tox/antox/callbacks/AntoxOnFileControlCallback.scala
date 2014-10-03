@@ -1,17 +1,17 @@
 package im.tox.antox.callbacks
 
+import java.nio.ByteBuffer
+
 import android.content.Context
 import android.util.Log
-import java.nio.ByteBuffer
+import im.tox.antox.callbacks.AntoxOnFileControlCallback._
 import im.tox.antox.data.AntoxDB
-import im.tox.antox.tox.ToxSingleton
-import im.tox.antox.tox.Reactive
+import im.tox.antox.tox.{Reactive, ToxSingleton}
 import im.tox.antox.utils.AntoxFriend
 import im.tox.jtoxcore.ToxFileControl
 import im.tox.jtoxcore.callbacks.OnFileControlCallback
-import AntoxOnFileControlCallback._
+
 //remove if not needed
-import scala.collection.JavaConversions._
 
 object AntoxOnFileControlCallback {
 
@@ -21,10 +21,10 @@ object AntoxOnFileControlCallback {
 class AntoxOnFileControlCallback(private var ctx: Context) extends OnFileControlCallback[AntoxFriend] {
 
   def execute(friend: AntoxFriend,
-    sending: Boolean,
-    fileNumber: Int,
-    control_type: ToxFileControl,
-    data: Array[Byte]) {
+              sending: Boolean,
+              fileNumber: Int,
+              control_type: ToxFileControl,
+              data: Array[Byte]) {
     Log.d(TAG, "execute, control type: " + control_type.name() + " sending: " +
       sending)
     if (control_type == ToxFileControl.TOX_FILECONTROL_FINISHED &&

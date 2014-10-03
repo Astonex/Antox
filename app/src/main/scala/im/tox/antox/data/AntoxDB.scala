@@ -1,32 +1,21 @@
 package im.tox.antox.data
 
-import android.content.ContentValues
-import android.content.Context
-import android.content.SharedPreferences
-import android.database.Cursor
-import android.database.SQLException
-import android.database.sqlite.SQLiteDatabase
-import android.database.sqlite.SQLiteOpenHelper
-import android.preference.PreferenceManager
-import android.util.Log
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
-import java.util.ArrayList
-import java.util.Date
-import java.util.HashMap
-import java.util.HashSet
-import java.util.TimeZone
-import im.tox.antox.utils.Constants
-import im.tox.antox.utils.Friend
-import im.tox.antox.utils.FriendRequest
-import im.tox.antox.utils.Message
-import im.tox.antox.utils.Tuple
-import im.tox.antox.utils.UserStatus
+import java.util.{ArrayList, Date, HashSet, TimeZone}
+
+import android.content.{ContentValues, Context}
+import android.database.Cursor
+import android.database.sqlite.{SQLiteDatabase, SQLiteOpenHelper}
+import android.preference.PreferenceManager
+import android.util.Log
+import im.tox.antox.data.AntoxDB._
+import im.tox.antox.utils.{Constants, Friend, FriendRequest, Message, UserStatus}
 import im.tox.jtoxcore.ToxUserStatus
-import AntoxDB._
+
 import scala.collection.mutable.ArrayBuffer
+
 //remove if not needed
-import scala.collection.JavaConversions._
 
 object AntoxDB {
 
@@ -57,58 +46,33 @@ object AntoxDB {
       "tox_key text, " +
       "message text)"
 
-    def onCreate(mDb: SQLiteDatabase) {
-      mDb.execSQL(CREATE_TABLE_FRIENDS)
-      mDb.execSQL(CREATE_TABLE_FRIEND_REQUESTS)
-      mDb.execSQL(CREATE_TABLE_MESSAGES)
-    }
-
     override def onUpgrade(mDb: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
       mDb.execSQL("DROP TABLE IF EXISTS " + Constants.TABLE_FRIENDS)
       mDb.execSQL("DROP TABLE IF EXISTS " + Constants.TABLE_CHAT_LOGS)
       mDb.execSQL("DROP TABLE IF EXISTS " + Constants.TABLE_FRIEND_REQUEST)
       onCreate(mDb)
     }
+
+    def onCreate(mDb: SQLiteDatabase) {
+      mDb.execSQL(CREATE_TABLE_FRIENDS)
+      mDb.execSQL(CREATE_TABLE_FRIEND_REQUESTS)
+      mDb.execSQL(CREATE_TABLE_MESSAGES)
+    }
   }
+
 }
 
 class AntoxDB(ctx: Context) {
 
-  private var mDbHelper: DatabaseHelper = _
-
-  private var mDb: SQLiteDatabase = _
-
   val preferences = PreferenceManager.getDefaultSharedPreferences(ctx)
-
+  private var mDbHelper: DatabaseHelper = _
+  private var mDb: SQLiteDatabase = _
   private var activeDatabase: String = preferences.getString("active_account", "")
 
-  def open(writeable: Boolean): AntoxDB = {
-    mDbHelper = new DatabaseHelper(ctx, activeDatabase)
-    mDb = if (writeable) mDbHelper.getWritableDatabase else mDbHelper.getReadableDatabase
-    this
-  }
-
-  def close() {
-    mDbHelper.close()
-  }
-
-  private def isColumnInTable(mDb: SQLiteDatabase, table: String, column: String): Boolean = {
-    try {
-      val cursor = mDb.rawQuery("SELECT * FROM " + table + " LIMIT 0", null)
-      if (cursor.getColumnIndex(column) == -1) {
-        false
-      } else {
-        true
-      }
-    } catch {
-      case e: Exception => false
-    }
-  }
-
   def addFriend(key: String,
-    message: String,
-    alias: String,
-    username: String) {
+                message: String,
+                alias: String,
+                username: String) {
     this.open(true)
     val parsedUsername = if (username.contains("@")) {
       username.substring(0, username.indexOf("@"))
@@ -130,10 +94,10 @@ class AntoxDB(ctx: Context) {
   }
 
   def addFileTransfer(key: String,
-    path: String,
-    fileNumber: Int,
-    size: Int,
-    sending: Boolean): Long = {
+                      path: String,
+                      fileNumber: Int,
+                      size: Int,
+                      sending: Boolean): Long = {
     this.open(true)
     val values = new ContentValues()
     values.put(Constants.COLUMN_NAME_KEY, key)
@@ -175,12 +139,12 @@ class AntoxDB(ctx: Context) {
   }
 
   def addMessage(message_id: Int,
-    key: String,
-    message: String,
-    has_been_received: Boolean,
-    has_been_read: Boolean,
-    successfully_sent: Boolean,
-    `type`: Int) {
+                 key: String,
+                 message: String,
+                 has_been_received: Boolean,
+                 has_been_read: Boolean,
+                 successfully_sent: Boolean,
+                 `type`: Int) {
     this.open(true)
     val values = new ContentValues()
     values.put(Constants.COLUMN_NAME_MESSAGE_ID, message_id: java.lang.Integer)
@@ -510,6 +474,16 @@ class AntoxDB(ctx: Context) {
     k
   }
 
+  def open(writeable: Boolean): AntoxDB = {
+    mDbHelper = new DatabaseHelper(ctx, activeDatabase)
+    mDb = if (writeable) mDbHelper.getWritableDatabase else mDbHelper.getReadableDatabase
+    this
+  }
+
+  def close() {
+    mDbHelper.close()
+  }
+
   def markIncomingMessagesRead(key: String) {
     this.open(true)
     val query = "UPDATE " + Constants.TABLE_CHAT_LOGS + " SET " + Constants.COLUMN_NAME_HAS_BEEN_READ +
@@ -703,5 +677,18 @@ class AntoxDB(ctx: Context) {
     cursor.close()
     this.close()
     isBlocked
+  }
+
+  private def isColumnInTable(mDb: SQLiteDatabase, table: String, column: String): Boolean = {
+    try {
+      val cursor = mDb.rawQuery("SELECT * FROM " + table + " LIMIT 0", null)
+      if (cursor.getColumnIndex(column) == -1) {
+        false
+      } else {
+        true
+      }
+    } catch {
+      case e: Exception => false
+    }
   }
 }

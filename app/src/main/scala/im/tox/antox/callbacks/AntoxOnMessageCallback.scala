@@ -1,25 +1,19 @@
 package im.tox.antox.callbacks
 
-import android.app.Notification
-import android.app.PendingIntent
-import android.content.Context
-import android.content.Intent
-import android.content.SharedPreferences
+import android.app.{Notification, PendingIntent}
+import android.content.{Context, Intent}
 import android.preference.PreferenceManager
-import android.support.v4.app.NotificationCompat
-import android.support.v4.app.TaskStackBuilder
+import android.support.v4.app.{NotificationCompat, TaskStackBuilder}
 import android.util.Log
 import im.tox.antox.R
 import im.tox.antox.activities.MainActivity
-import im.tox.antox.data.AntoxDB
+import im.tox.antox.callbacks.AntoxOnMessageCallback._
+import im.tox.antox.data.{AntoxDB, State}
 import im.tox.antox.tox.ToxSingleton
-import im.tox.antox.utils.AntoxFriend
-import im.tox.antox.utils.Constants
-import im.tox.antox.data.State
+import im.tox.antox.utils.{AntoxFriend, Constants}
 import im.tox.jtoxcore.callbacks.OnMessageCallback
-import AntoxOnMessageCallback._
+
 //remove if not needed
-import scala.collection.JavaConversions._
 
 object AntoxOnMessageCallback {
 

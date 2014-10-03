@@ -1,4 +1,6 @@
-package im.tox.antox;
+package im.tox.antox
+
+;
 
 import android.util.Log
 

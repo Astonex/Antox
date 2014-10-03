@@ -6,10 +6,10 @@
         android:duration="150"
         android:fromXScale="1.0"
         android:fromYScale="1.0"
-        android:toXScale="0.85"
-        android:toYScale="0.85"
         android:pivotX="50%"
-        android:pivotY="50%" />
+        android:pivotY="50%"
+        android:toXScale="0.85"
+        android:toYScale="0.85" />
     <alpha
         android:duration="150"
         android:fromAlpha="1.0"

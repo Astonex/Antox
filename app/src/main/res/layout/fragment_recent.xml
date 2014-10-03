@@ -5,32 +5,36 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:background="@color/white_absolute"
-    android:orientation="vertical" >
-        <FrameLayout
+    android:orientation="vertical">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ListView
+            android:id="@+id/conversations_list"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-                <ListView
-                    android:id="@+id/conversations_list"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@color/white_absolute"
-                    android:cacheColorHint="@android:color/transparent"
-                    android:divider="@drawable/list_divider"
-                    android:dividerHeight="0dp" />
-                <LinearLayout
-                    android:id="@+id/recent_no_conversations"
-                    android:visibility="gone"
-                    android:orientation="vertical"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@color/white_absolute"
-                    android:gravity="center">
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textSize="@dimen/text_large"
-                        android:text="@string/main_recent_no"/>
-                    </LinearLayout>
+            android:layout_height="wrap_content"
+            android:background="@color/white_absolute"
+            android:cacheColorHint="@android:color/transparent"
+            android:divider="@drawable/list_divider"
+            android:dividerHeight="0dp" />
+
+        <LinearLayout
+            android:id="@+id/recent_no_conversations"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/white_absolute"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/main_recent_no"
+                android:textSize="@dimen/text_large" />
+        </LinearLayout>
     </FrameLayout>
 </LinearLayout>
 

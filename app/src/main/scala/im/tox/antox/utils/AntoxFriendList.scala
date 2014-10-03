@@ -1,23 +1,11 @@
 package im.tox.antox.utils
 
-import java.util.ArrayList
-import java.util.Collections
-import java.util.Iterator
-import java.util.List
-import java.util.Locale
-import im.tox.jtoxcore.FriendExistsException
-import im.tox.jtoxcore.FriendList
-import im.tox.jtoxcore.ToxFriend
-import im.tox.jtoxcore.ToxUserStatus
-import rx.lang.scala.JavaConversions
-import rx.lang.scala.Observable
-import rx.lang.scala.Observer
-import rx.lang.scala.Subscriber
-import rx.lang.scala.Subscription
-import rx.lang.scala.Subject
-import rx.lang.scala.schedulers.IOScheduler
-import rx.lang.scala.schedulers.AndroidMainThreadScheduler
+import java.util.{ArrayList, Collections, List, Locale}
+
+import im.tox.jtoxcore.{FriendExistsException, FriendList, ToxUserStatus}
+
 //remove if not needed
+
 import scala.collection.JavaConversions._
 
 class AntoxFriendList extends FriendList[AntoxFriend] {
@@ -36,15 +24,15 @@ class AntoxFriendList extends FriendList[AntoxFriend] {
     }
   }
 
-  def getByKey(key: String): Option[AntoxFriend] = {
-    friends.filter(friend => friend.getId == key).headOption
-  }
-
   override def getById(id: String): AntoxFriend = {
     getByKey(id) match {
       case Some(x) => x
       case None => null
     }
+  }
+
+  def getByKey(key: String): Option[AntoxFriend] = {
+    friends.filter(friend => friend.getId == key).headOption
   }
 
   override def getByName(name: String, ignorecase: Boolean): List[AntoxFriend] = {

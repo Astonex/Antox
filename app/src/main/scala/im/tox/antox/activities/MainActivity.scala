@@ -1,51 +1,28 @@
 package im.tox.antox.activities
 
 import java.util
+import java.util.Locale
 
-import android.app.Activity
-import android.app.AlertDialog
-import android.app.NotificationManager
-import android.content.Context
-import android.content.DialogInterface
-import android.content.Intent
-import android.content.SharedPreferences
+import android.app.{Activity, AlertDialog, NotificationManager}
 import android.content.res.Configuration
+import android.content.{Context, DialogInterface, Intent, SharedPreferences}
 import android.media.AudioManager
 import android.net.ConnectivityManager
-import android.net.NetworkInfo
-import android.os.Build
-import android.os.Bundle
+import android.os.{Build, Bundle}
 import android.preference.PreferenceManager
-import android.support.v4.app.ActionBarDrawerToggle
-import android.support.v4.app.ActivityCompat
+import android.support.v4.app.{ActionBarDrawerToggle, ActivityCompat}
 import android.support.v4.view.GravityCompat
 import android.support.v4.widget.DrawerLayout
 import android.support.v7.app.ActionBarActivity
-import android.util.Log
-import android.view.Gravity
-import android.view.MenuItem
-import android.view.View
-import android.view.WindowManager
-import android.widget.AdapterView
-import android.widget.ListAdapter
-import android.widget.ListView
-import android.widget.Toast
-import java.util.ArrayList
-import java.util.Locale
+import android.view.{Gravity, MenuItem, View, WindowManager}
+import android.widget.{AdapterView, ListView, Toast}
 import im.tox.antox.R
 import im.tox.antox.data.AntoxDB
 import im.tox.antox.tox.ToxSingleton
-import im.tox.antox.utils.AntoxFriend
-import im.tox.antox.utils.BitmapManager
-import im.tox.antox.utils.Constants
-import im.tox.antox.utils.DrawerArrayAdapter
-import im.tox.antox.utils.DrawerItem
-import im.tox.antox.utils.Triple
-import im.tox.jtoxcore.ToxCallType
-import im.tox.jtoxcore.ToxCodecSettings
-import im.tox.jtoxcore.ToxException
+import im.tox.antox.utils.{BitmapManager, Constants, DrawerArrayAdapter, DrawerItem}
+import im.tox.jtoxcore.{ToxCallType, ToxCodecSettings, ToxException}
+
 //remove if not needed
-import scala.collection.JavaConversions._
 
 class MainActivity extends ActionBarActivity {
 
@@ -59,27 +36,6 @@ class MainActivity extends ActionBarActivity {
 
   private var mDrawerToggle: ActionBarDrawerToggle = _
 
-  private def selectItem(position: Int) {
-    if (position == 0) {
-      val intent = new Intent(this, classOf[Settings])
-      startActivity(intent)
-    } else if (position == 1) {
-      val intent = new Intent(this, classOf[ProfileSettingsActivity])
-      startActivity(intent)
-    } else if (position == 2) {
-      Toast.makeText(this, "Coming soon...", Toast.LENGTH_LONG)
-        .show()
-    } else if (position == 3) {
-      val intent = new Intent(this, classOf[About])
-      startActivity(intent)
-    } else if (position == 4) {
-      val intent = new Intent(this, classOf[License])
-      startActivity(intent)
-    }
-    mDrawerList.setItemChecked(position, true)
-    mDrawerLayout.closeDrawer(mDrawerList)
-  }
-
   override def onOptionsItemSelected(item: MenuItem): Boolean = {
     val id = item.getItemId
     if (id == android.R.id.home) {
@@ -90,14 +46,56 @@ class MainActivity extends ActionBarActivity {
     super.onOptionsItemSelected(item)
   }
 
-  protected override def onPostCreate(savedInstanceState: Bundle) {
-    super.onPostCreate(savedInstanceState)
-    mDrawerToggle.syncState()
-  }
-
   override def onConfigurationChanged(newConfig: Configuration) {
     super.onConfigurationChanged(newConfig)
     mDrawerToggle.onConfigurationChanged(newConfig)
+  }
+
+  def onClickAddFriend(v: View) {
+    val intent = new Intent(this, classOf[AddFriendActivity])
+    startActivityForResult(intent, Constants.ADD_FRIEND_REQUEST_CODE)
+  }
+
+  def onClickVoiceCallFriend(v: View) {
+    val toxCodecSettings = new ToxCodecSettings(ToxCallType.TYPE_AUDIO, 0, 0, 0, 64000, 20, 48000, 1)
+    val mFriend = ToxSingleton.getAntoxFriend(ToxSingleton.activeKey)
+    mFriend.foreach(friend => {
+      val userID = friend.getFriendnumber()
+      try {
+        ToxSingleton.jTox.avCall(userID, toxCodecSettings, 10)
+      } catch {
+        case e: ToxException =>
+      }
+    })
+  }
+
+  def onClickVideoCallFriend(v: View) {
+  }
+
+  override def onPause() {
+    super.onPause()
+    if (preferences.getBoolean("beenLoaded", false)) {
+      ToxSingleton.chatActive = false
+    }
+  }
+
+  def onTButtonClick(view: View): Unit = {
+    if (mDrawerLayout.isDrawerOpen(Gravity.LEFT))
+      mDrawerLayout.closeDrawers()
+    else
+      mDrawerLayout.openDrawer(Gravity.LEFT)
+  }
+
+  override def onBackPressed() {
+    if (mDrawerLayout.isDrawerOpen(Gravity.LEFT))
+      mDrawerLayout.closeDrawers()
+    else
+      finish()
+  }
+
+  protected override def onPostCreate(savedInstanceState: Bundle) {
+    super.onPostCreate(savedInstanceState)
+    mDrawerToggle.syncState()
   }
 
   protected override def onCreate(savedInstanceState: Bundle) {
@@ -107,7 +105,7 @@ class MainActivity extends ActionBarActivity {
     val language = preferences.getString("language", "-1")
     if (language == "-1") {
       val editor = preferences.edit()
-      val currentLanguage = getResources.getConfiguration.locale.getCountry.toLowerCase()
+      val currentLanguage = getResources.getConfiguration.locale.getCountry.toLowerCase
       editor.putString("language", currentLanguage)
       editor.apply()
     } else {
@@ -174,55 +172,6 @@ class MainActivity extends ActionBarActivity {
     ToxSingleton.updateMessages(getApplicationContext)
   }
 
-  def onClickAddFriend(v: View) {
-    val intent = new Intent(this, classOf[AddFriendActivity])
-    startActivityForResult(intent, Constants.ADD_FRIEND_REQUEST_CODE)
-  }
-
-  def onClickVoiceCallFriend(v: View) {
-    val toxCodecSettings = new ToxCodecSettings(ToxCallType.TYPE_AUDIO, 0, 0, 0, 64000, 20, 48000, 1)
-    val mFriend = ToxSingleton.getAntoxFriend(ToxSingleton.activeKey)
-    mFriend.foreach(friend => {
-      val userID = friend.getFriendnumber()
-      try {
-        ToxSingleton.jTox.avCall(userID, toxCodecSettings, 10)
-      } catch {
-        case e: ToxException =>
-      }
-    })
-  }
-
-  def onClickVideoCallFriend(v: View) {
-  }
-
-  protected override def onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
-    super.onActivityResult(requestCode, resultCode, data)
-    if (requestCode == Constants.ADD_FRIEND_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-      ToxSingleton.updateFriendsList(this)
-    }
-  }
-
-  override def onPause() {
-    super.onPause()
-    if (preferences.getBoolean("beenLoaded", false)) {
-      ToxSingleton.chatActive = false
-    }
-  }
-
-  def onTButtonClick(view: View): Unit = {
-    if(mDrawerLayout.isDrawerOpen(Gravity.LEFT))
-      mDrawerLayout.closeDrawers()
-    else
-      mDrawerLayout.openDrawer(Gravity.LEFT)
-  }
-
-  override def onBackPressed() {
-    if(mDrawerLayout.isDrawerOpen(Gravity.LEFT))
-      mDrawerLayout.closeDrawers()
-    else
-      finish()
-  }
-
   def showAlertDialog(context: Context, title: String, message: String) {
     val alertDialog = new AlertDialog.Builder(context).create()
     alertDialog.setTitle(title)
@@ -236,13 +185,43 @@ class MainActivity extends ActionBarActivity {
     alertDialog.show()
   }
 
+  protected override def onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
+    super.onActivityResult(requestCode, resultCode, data)
+    if (requestCode == Constants.ADD_FRIEND_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+      ToxSingleton.updateFriendsList(this)
+    }
+  }
+
+  private def selectItem(position: Int) {
+    if (position == 0) {
+      val intent = new Intent(this, classOf[Settings])
+      startActivity(intent)
+    } else if (position == 1) {
+      val intent = new Intent(this, classOf[ProfileSettingsActivity])
+      startActivity(intent)
+    } else if (position == 2) {
+      Toast.makeText(this, "Coming soon...", Toast.LENGTH_LONG)
+        .show()
+      //TODO: add groups
+    } else if (position == 3) {
+      val intent = new Intent(this, classOf[About])
+      startActivity(intent)
+    } else if (position == 4) {
+      val intent = new Intent(this, classOf[License])
+      startActivity(intent)
+    }
+    mDrawerList.setItemChecked(position, true)
+    mDrawerLayout.closeDrawer(mDrawerList)
+  }
+
   private class DrawerItemClickListener extends AdapterView.OnItemClickListener {
 
     override def onItemClick(parent: AdapterView[_],
-      view: View,
-      position: Int,
-      id: Long) {
+                             view: View,
+                             position: Int,
+                             id: Long) {
       selectItem(position)
     }
   }
+
 }

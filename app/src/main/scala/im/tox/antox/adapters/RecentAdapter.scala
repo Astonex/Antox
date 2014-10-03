@@ -1,23 +1,19 @@
 package im.tox.antox.adapters
 
-import android.content.Context
-import android.content.Intent
+import java.sql.Timestamp
+
+import android.content.{Context, Intent}
 import android.database.Cursor
 import android.support.v4.widget.ResourceCursorAdapter
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.TextView
-import java.sql.Timestamp
 import im.tox.antox.R
 import im.tox.antox.activities.ChatActivity
+import im.tox.antox.adapters.RecentAdapter._
 import im.tox.antox.tox.ToxSingleton
-import im.tox.antox.utils.IconColor
-import im.tox.antox.utils.PrettyTimestamp
-import im.tox.antox.utils.UserStatus
-import RecentAdapter._
+import im.tox.antox.utils.{IconColor, PrettyTimestamp, UserStatus}
+
 //remove if not needed
-import scala.collection.JavaConversions._
 
 object RecentAdapter {
 
@@ -33,6 +29,7 @@ object RecentAdapter {
 
     var unreadCount: TextView = _
   }
+
 }
 
 class RecentAdapter(var context: Context, c: Cursor) extends ResourceCursorAdapter(context, R.layout.contact_list_item,

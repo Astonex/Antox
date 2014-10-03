@@ -1,57 +1,39 @@
 package im.tox.antox.activities
 
+import java.io.{File, FileNotFoundException, FileOutputStream, IOException}
+
 import android.app.AlertDialog
-import android.app.Dialog
-import android.content.Context
-import android.content.DialogInterface
-import android.content.Intent
-import android.content.SharedPreferences
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
+import android.content.{Context, DialogInterface, Intent, SharedPreferences}
+import android.graphics.{Bitmap, BitmapFactory}
 import android.net.Uri
-import android.os.Build
-import android.os.Bundle
-import android.os.Environment
-import android.preference.EditTextPreference
-import android.preference.ListPreference
-import android.preference.Preference
-import android.preference.PreferenceActivity
-import android.preference.PreferenceManager
-import android.view.LayoutInflater
-import android.view.MenuItem
-import android.view.View
+import android.os.{Build, Bundle, Environment}
+import android.preference.{ListPreference, Preference, PreferenceActivity, PreferenceManager}
+import android.view.{MenuItem, View}
 import android.widget.ImageButton
-import com.google.zxing.BarcodeFormat
-import com.google.zxing.WriterException
-import java.io.File
-import java.io.FileNotFoundException
-import java.io.FileOutputStream
-import java.io.IOException
-import im.tox.QR.Contents
-import im.tox.QR.QRCodeEncode
+import com.google.zxing.{BarcodeFormat, WriterException}
+import im.tox.QR.{Contents, QRCodeEncode}
 import im.tox.antox.R
+import im.tox.antox.activities.ProfileSettingsActivity._
 import im.tox.antox.data.UserDB
-import im.tox.antox.tox.ToxDoService
-import im.tox.antox.tox.ToxSingleton
+import im.tox.antox.tox.{ToxDoService, ToxSingleton}
 import im.tox.antox.utils.UserStatus
 import im.tox.jtoxcore.ToxException
-import im.tox.jtoxcore.ToxUserStatus
-import ProfileSettingsActivity._
+
 //remove if not needed
-import scala.collection.JavaConversions._
 
 object ProfileSettingsActivity {
 
-  private var sBindPreferenceSummaryToValueListener: Preference.OnPreferenceChangeListener = new Preference.OnPreferenceChangeListener() {
+  private val sBindPreferenceSummaryToValueListener: Preference.OnPreferenceChangeListener
+  = new Preference.OnPreferenceChangeListener() {
 
     override def onPreferenceChange(preference: Preference, value: AnyRef): Boolean = {
       val stringValue = value.toString
-      if (preference.isInstanceOf[ListPreference]) {
-        val listPreference = preference.asInstanceOf[ListPreference]
-        val index = listPreference.findIndexOfValue(stringValue)
-        preference.setSummary(if (index >= 0) listPreference.getEntries()(index) else null)
-      } else {
-        preference.setSummary(stringValue)
+      preference match {
+        case listPreference: ListPreference =>
+          val index = listPreference.findIndexOfValue(stringValue)
+          preference.setSummary(if (index >= 0) listPreference.getEntries()(index) else null)
+        case _ =>
+          preference.setSummary(stringValue)
       }
       true
     }
@@ -83,7 +65,7 @@ class ProfileSettingsActivity extends PreferenceActivity with SharedPreferences.
 
       override def onPreferenceClick(preference: Preference): Boolean = {
         createDialog()
-        return true
+        true
       }
     })
     val logoutPreference = findPreference("logout")

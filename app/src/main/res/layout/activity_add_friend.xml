@@ -6,38 +6,38 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:focusableInTouchMode="true"
         android:orientation="vertical"
         android:paddingBottom="@dimen/margin_large"
         android:paddingLeft="@dimen/margin_large"
         android:paddingRight="@dimen/margin_large"
-        android:focusableInTouchMode="true"
         android:paddingTop="@dimen/margin_large"
         tools:context=".AddFriendActivity">
 
         <EditText
             android:id="@+id/addfriend_key"
             android:layout_width="match_parent"
-            android:inputType="text"
             android:layout_height="match_parent"
-            android:singleLine="true"
             android:layout_marginTop="20dp"
             android:gravity="center"
-            android:hint="@string/addfriend_friend_key" />
+            android:hint="@string/addfriend_friend_key"
+            android:inputType="text"
+            android:singleLine="true" />
 
         <TextView
+            android:id="@+id/textView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/textView"
-            android:inputType="text"
+            android:layout_gravity="center_horizontal"
             android:layout_marginTop="20dp"
-            android:textSize="25sp"
+            android:inputType="text"
             android:text="@string/addfriend_optional_title"
-            android:layout_gravity="center_horizontal"/>
+            android:textSize="25sp" />
 
         <EditText
+            android:id="@+id/addfriend_friendAlias"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/addfriend_friendAlias"
             android:layout_marginTop="0dp"
             android:gravity="center"
             android:hint="@string/addfriend_nick_hint" />
@@ -46,10 +46,10 @@
             android:id="@+id/addfriend_message"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="text"
             android:layout_marginTop="10dp"
             android:gravity="center"
-            android:hint="@string/addfriend_friend_message" />
+            android:hint="@string/addfriend_friend_message"
+            android:inputType="text" />
 
         <Button
             android:id="@+id/addFriend"
@@ -57,8 +57,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:gravity="center"
-            android:text="@string/addfriend_button"
-            android:onClick="addFriend" />
+            android:onClick="addFriend"
+            android:text="@string/addfriend_button" />
 
     </LinearLayout>
 </ScrollView>

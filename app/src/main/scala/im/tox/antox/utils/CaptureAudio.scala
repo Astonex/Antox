@@ -1,13 +1,11 @@
 package im.tox.antox.utils
 
-import android.media.AudioFormat
-import android.media.AudioRecord
-import android.media.MediaRecorder
+import android.media.{AudioFormat, AudioRecord}
 import android.os.AsyncTask
 import android.util.Log
 import im.tox.antox.tox.ToxSingleton
+
 //remove if not needed
-import scala.collection.JavaConversions._
 
 class CaptureAudio extends AsyncTask[String, Void, Void] {
 

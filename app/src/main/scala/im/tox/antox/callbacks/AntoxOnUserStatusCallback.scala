@@ -6,9 +6,8 @@ import im.tox.antox.tox.ToxSingleton
 import im.tox.antox.utils.AntoxFriend
 import im.tox.jtoxcore.ToxUserStatus
 import im.tox.jtoxcore.callbacks.OnUserStatusCallback
-import AntoxOnUserStatusCallback._
+
 //remove if not needed
-import scala.collection.JavaConversions._
 
 object AntoxOnUserStatusCallback {
 

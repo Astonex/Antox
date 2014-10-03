@@ -1,48 +1,29 @@
 package im.tox.antox.adapters
 
+import java.io.File
+import java.sql.Timestamp
+import java.util.HashSet
+
 import android.app.AlertDialog
-import android.content.Context
-import android.content.DialogInterface
-import android.content.Intent
+import android.content.{Context, DialogInterface, Intent}
 import android.database.Cursor
 import android.net.Uri
 import android.os.Environment
 import android.support.v4.widget.ResourceCursorAdapter
 import android.text.ClipboardManager
 import android.util.Log
-import android.view.Gravity
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.view.animation.Animation
-import android.view.animation.AnimationUtils
-import android.widget.FrameLayout
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.ProgressBar
-import android.widget.TextView
-import java.io.File
-import java.sql.Timestamp
-import java.util.HashSet
+import android.view.animation.{Animation, AnimationUtils}
+import android.view.{Gravity, LayoutInflater, View, ViewGroup}
+import android.widget.{FrameLayout, ImageView, LinearLayout, ProgressBar, TextView}
 import im.tox.antox.R
+import im.tox.antox.adapters.ChatMessagesAdapter._
 import im.tox.antox.data.AntoxDB
 import im.tox.antox.tox.ToxSingleton
-import im.tox.antox.utils.BitmapManager
-import im.tox.antox.utils.ChatMessages
-import im.tox.antox.utils.Constants
-import im.tox.antox.utils.PrettyTimestamp
-import im.tox.antox.utils.Tuple
-import rx.lang.scala.JavaConversions
+import im.tox.antox.utils.{BitmapManager, ChatMessages, Constants, PrettyTimestamp}
 import rx.lang.scala.Observable
-import rx.lang.scala.Observer
-import rx.lang.scala.Subscriber
-import rx.lang.scala.Subscription
-import rx.lang.scala.Subject
 import rx.lang.scala.schedulers.IOScheduler
-import rx.lang.scala.schedulers.AndroidMainThreadScheduler
-import ChatMessagesAdapter._
+
 //remove if not needed
-import scala.collection.JavaConversions._
 
 object ChatMessagesAdapter {
 
@@ -82,6 +63,7 @@ object ChatMessagesAdapter {
 
     var bubble: LinearLayout = _
   }
+
 }
 
 class ChatMessagesAdapter(var context: Context, c: Cursor, ids: HashSet[Integer])
@@ -333,8 +315,6 @@ class ChatMessagesAdapter(var context: Context, c: Cursor, ids: HashSet[Integer]
     })
   }
 
-  override def getViewTypeCount(): Int = 4
-
   private def ownMessage(holder: ChatMessagesHolder) {
     holder.time.setGravity(Gravity.RIGHT)
     holder.sentTriangle.setVisibility(View.VISIBLE)
@@ -354,4 +334,6 @@ class ChatMessagesAdapter(var context: Context, c: Cursor, ids: HashSet[Integer]
     holder.background.setBackgroundDrawable(context.getResources.getDrawable(R.drawable.conversation_item_received_shape))
     holder.background.setPadding(8 * density, 8 * density, 8 * density, 8 * density)
   }
+
+  override def getViewTypeCount(): Int = 4
 }

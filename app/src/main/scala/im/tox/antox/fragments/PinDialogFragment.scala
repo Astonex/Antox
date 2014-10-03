@@ -1,18 +1,15 @@
 package im.tox.antox.fragments
 
-import android.app.Activity
-import android.app.AlertDialog
-import android.app.Dialog
+import android.app.{Activity, AlertDialog, Dialog}
 import android.content.DialogInterface
 import android.os.Bundle
 import android.support.v4.app.DialogFragment
-import android.view.LayoutInflater
 import android.view.View
 import android.widget.EditText
 import im.tox.antox.R
-import PinDialogFragment._
+import im.tox.antox.fragments.PinDialogFragment._
+
 //remove if not needed
-import scala.collection.JavaConversions._
 
 object PinDialogFragment {
 
@@ -22,6 +19,7 @@ object PinDialogFragment {
 
     def onDialogNegativeClick(dialog: DialogFragment): Unit
   }
+
 }
 
 class PinDialogFragment extends DialogFragment {
@@ -44,16 +42,16 @@ class PinDialogFragment extends DialogFragment {
     builder.setMessage(getResources.getString(R.string.dialog_pin))
       .setPositiveButton(getResources.getString(R.string.button_confirm), new DialogInterface.OnClickListener() {
 
-        def onClick(dialog: DialogInterface, id: Int) {
-          mListener.onDialogPositiveClick(PinDialogFragment.this, pin.getText.toString)
-        }
-      })
+      def onClick(dialog: DialogInterface, id: Int) {
+        mListener.onDialogPositiveClick(PinDialogFragment.this, pin.getText.toString)
+      }
+    })
       .setNegativeButton(getResources.getString(R.string.button_cancel), new DialogInterface.OnClickListener() {
 
-        def onClick(dialog: DialogInterface, id: Int) {
-          mListener.onDialogNegativeClick(PinDialogFragment.this)
-        }
-      })
+      def onClick(dialog: DialogInterface, id: Int) {
+        mListener.onDialogNegativeClick(PinDialogFragment.this)
+      }
+    })
     builder.create()
   }
 

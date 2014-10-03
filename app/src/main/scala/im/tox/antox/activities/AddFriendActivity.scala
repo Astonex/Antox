@@ -1,48 +1,28 @@
 package im.tox.antox.activities
 
-import android.content.Context
-import android.content.Intent
-import android.content.SharedPreferences
+import android.app.Activity
+import android.content.{Context, Intent}
 import android.net.Uri
-import android.os.Build
-import android.os.Bundle
+import android.os.{Build, Bundle}
 import android.preference.PreferenceManager
-import android.support.v4.app.DialogFragment
-import android.support.v4.app.NavUtils
+import android.support.v4.app.{DialogFragment, NavUtils}
 import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.ActionBarActivity
-import android.app.Activity
-import android.util.Base64
-import android.util.Log
-import android.view.Menu
-import android.view.MenuItem
-import android.view.View
-import android.view.WindowManager
-import android.widget.EditText
-import android.widget.Toast
-import org.xbill.DNS.Lookup
-import org.xbill.DNS.Record
-import org.xbill.DNS.TXTRecord
-import org.xbill.DNS.Type
+import android.util.{Base64, Log}
+import android.view.{Menu, MenuItem, View, WindowManager}
+import android.widget.{EditText, Toast}
 import im.tox.QR.IntentIntegrator
-import im.tox.QR.IntentResult
 import im.tox.antox.R
 import im.tox.antox.data.AntoxDB
 import im.tox.antox.fragments.PinDialogFragment
 import im.tox.antox.tox.ToxSingleton
 import im.tox.antox.utils.Constants
-import im.tox.jtoxcore.FriendExistsException
-import im.tox.jtoxcore.ToxException
-import rx.lang.scala.JavaConversions
+import im.tox.jtoxcore.{FriendExistsException, ToxException}
+import org.xbill.DNS.{Lookup, TXTRecord, Type}
 import rx.lang.scala.Observable
-import rx.lang.scala.Observer
-import rx.lang.scala.Subscriber
-import rx.lang.scala.Subscription
-import rx.lang.scala.Subject
-import rx.lang.scala.schedulers.IOScheduler
-import rx.lang.scala.schedulers.AndroidMainThreadScheduler
+import rx.lang.scala.schedulers.{AndroidMainThreadScheduler, IOScheduler}
+
 //remove if not needed
-import scala.collection.JavaConversions._
 
 class AddFriendActivity extends ActionBarActivity with PinDialogFragment.PinDialogListener {
 
@@ -117,14 +97,55 @@ class AddFriendActivity extends ActionBarActivity with PinDialogFragment.PinDial
 
   override def onPause() = {
     super.onPause()
-    if (isFinishing()) overridePendingTransition(R.anim.fade_scale_in, R.anim.slide_to_bottom);
+    if (isFinishing) overridePendingTransition(R.anim.fade_scale_in, R.anim.slide_to_bottom)
   }
 
-  private def isKeyOwn(key: String): Boolean = {
-    val preferences = PreferenceManager.getDefaultSharedPreferences(context)
-    var tmp = preferences.getString("tox_id", "")
-    if (tmp.toLowerCase().startsWith("tox:")) tmp = tmp.substring(4)
-    if (tmp == key) true else false
+  def addFriend(view: View) {
+    if (friendID.getText.toString.contains("@") || friendID.getText.length != 76) {
+      _originalUsername = friendID.getText.toString
+      try {
+        DNSLookup(friendID.getText.toString)
+          .subscribeOn(IOScheduler())
+          .observeOn(AndroidMainThreadScheduler())
+          .subscribe((tup: (String, Option[String])) => {
+          tup match {
+            case (key, mCheck) =>
+              mCheck match {
+                case Some(check) =>
+                  val dialog = new PinDialogFragment()
+                  val bundle = new Bundle()
+                  bundle.putString(getResources.getString(R.string.addfriend_friend_pin_title), getResources.getString(R.string.addfriend_friend_pin_text))
+                  dialog.setArguments(bundle)
+                  dialog.show(getSupportFragmentManager, "NoticeDialogFragment")
+                case None =>
+                  val result = checkAndSend(key, _originalUsername)
+                  if (result == 0) {
+                    toast = Toast.makeText(context, text, duration)
+                    toast.show()
+                  } else if (result == -1) {
+                    toast = Toast.makeText(context, getResources.getString(R.string.invalid_friend_ID), Toast.LENGTH_SHORT)
+                    toast.show()
+                    return
+                  } else if (result == -2) {
+                    toast = Toast.makeText(context, getResources.getString(R.string.addfriend_friend_exists), Toast.LENGTH_SHORT)
+                    toast.show()
+                  } else if (result == -3) {
+                    toast = Toast.makeText(context, getResources.getString(R.string.addfriend_own_key), Toast.LENGTH_SHORT)
+                    toast.show()
+                  }
+                  val update = new Intent(Constants.BROADCAST_ACTION)
+                  update.putExtra("action", Constants.UPDATE)
+                  LocalBroadcastManager.getInstance(this).sendBroadcast(update)
+                  val i = new Intent()
+                  setResult(Activity.RESULT_OK, i)
+                  finish()
+              }
+          }
+        })
+      } catch {
+        case e: Exception => e.printStackTrace()
+      }
+    }
   }
 
   private def checkAndSend(key: String, originalUsername: String): Int = {
@@ -158,60 +179,45 @@ class AddFriendActivity extends ActionBarActivity with PinDialogFragment.PinDial
     }
   }
 
-  private def scanIntent() {
-    val integrator = new IntentIntegrator(this)
-    integrator.initiateScan()
+  private def isKeyOwn(key: String): Boolean = {
+    val preferences = PreferenceManager.getDefaultSharedPreferences(context)
+    var tmp = preferences.getString("tox_id", "")
+    if (tmp.toLowerCase.startsWith("tox:")) tmp = tmp.substring(4)
+    if (tmp == key) true else false
   }
 
-  def addFriend(view: View) {
-    if (friendID.getText.toString.contains("@") || friendID.getText.length != 76) {
-      _originalUsername = friendID.getText.toString
+  private def DNSLookup(input: String): Observable[(String, Option[String])] = {
+    Observable(subscriber => {
+      var user: String = null
+      var domain: String = null
+      var lookup: String = null
+      if (!input.contains("@")) {
+        user = input
+        domain = "toxme.se"
+        lookup = user + "._tox." + domain
+      } else {
+        user = input.substring(0, input.indexOf("@"))
+        domain = input.substring(input.indexOf("@") + 1)
+        lookup = user + "._tox." + domain
+      }
+      var txt: TXTRecord = null
       try {
-        DNSLookup(friendID.getText.toString)
-          .subscribeOn(IOScheduler())
-          .observeOn(AndroidMainThreadScheduler())
-          .subscribe((tup: (String, Option[String])) => {
-            tup match {
-              case (key, mCheck) => {
-                mCheck match {
-                  case Some(check) => {
-                    val dialog = new PinDialogFragment()
-                    val bundle = new Bundle()
-                    bundle.putString(getResources.getString(R.string.addfriend_friend_pin_title), getResources.getString(R.string.addfriend_friend_pin_text))
-                    dialog.setArguments(bundle)
-                    dialog.show(getSupportFragmentManager, "NoticeDialogFragment")
-                  }
-                  case None => {
-                    val result = checkAndSend(key, _originalUsername)
-                    if (result == 0) {
-                      toast = Toast.makeText(context, text, duration)
-                      toast.show()
-                    } else if (result == -1) {
-                      toast = Toast.makeText(context, getResources.getString(R.string.invalid_friend_ID), Toast.LENGTH_SHORT)
-                      toast.show()
-                      return
-                    } else if (result == -2) {
-                      toast = Toast.makeText(context, getResources.getString(R.string.addfriend_friend_exists), Toast.LENGTH_SHORT)
-                      toast.show()
-                    } else if (result == -3) {
-                      toast = Toast.makeText(context, getResources.getString(R.string.addfriend_own_key), Toast.LENGTH_SHORT)
-                      toast.show()
-                    }
-                    val update = new Intent(Constants.BROADCAST_ACTION)
-                    update.putExtra("action", Constants.UPDATE)
-                    LocalBroadcastManager.getInstance(this).sendBroadcast(update)
-                    val i = new Intent()
-                    setResult(Activity.RESULT_OK, i)
-                    finish()
-                  }
-                }
-              }
-            }
-          })
+        val records = new Lookup(lookup, Type.TXT).run()
+        txt = records(0).asInstanceOf[TXTRecord]
+        val txtString = txt.toString.substring(txt.toString.indexOf('"'))
+        if (txtString.contains("tox1")) {
+          val key = txtString.substring(11, 11 + 76)
+          subscriber.onNext((key, None))
+        } else if (txtString.contains("tox2")) {
+          val key = txtString.substring(12, 12 + 64)
+          val check = txtString.substring(12 + 64 + 7, 12 + 64 + 7 + 4)
+          subscriber.onNext((key, Some(check)))
+        }
       } catch {
         case e: Exception => e.printStackTrace()
       }
-    }
+      subscriber.onCompleted()
+    })
   }
 
   override def onDialogPositiveClick(dialog: DialogFragment, pin: String) {
@@ -220,7 +226,7 @@ class AddFriendActivity extends ActionBarActivity with PinDialogFragment.PinDial
       val decoded = Base64.decode(newpin, Base64.DEFAULT)
       val sb = new StringBuilder()
       for (b <- decoded) sb.append("%02x".format(b & 0xff))
-      val encodedString = sb.toString
+      val encodedString = sb.toString()
       _friendID = _friendID + encodedString + _friendCHECK
       val restart = new Intent(this, classOf[AddFriendActivity])
       restart.putExtra("key", _friendID)
@@ -231,14 +237,13 @@ class AddFriendActivity extends ActionBarActivity with PinDialogFragment.PinDial
       startActivity(restart)
       finish()
     } catch {
-      case e: IllegalArgumentException => {
+      case e: IllegalArgumentException =>
         val context = getApplicationContext
         val text = getString(R.string.addfriend_invalid_pin)
         val duration = Toast.LENGTH_SHORT
         val toast = Toast.makeText(context, text, duration)
         toast.show()
         e.printStackTrace()
-      }
     }
   }
 
@@ -250,7 +255,7 @@ class AddFriendActivity extends ActionBarActivity with PinDialogFragment.PinDial
     if (scanResult != null) {
       if (scanResult.getContents != null) {
         val addFriendKey = findViewById(R.id.addfriend_key).asInstanceOf[EditText]
-        val friendKey = (if (scanResult.getContents.toLowerCase().contains("tox:")) scanResult.getContents.substring(4) else scanResult.getContents)
+        val friendKey = if (scanResult.getContents.toLowerCase.contains("tox:")) scanResult.getContents.substring(4) else scanResult.getContents
         if (validateFriendKey(friendKey)) {
           addFriendKey.setText(friendKey)
         } else {
@@ -293,40 +298,11 @@ class AddFriendActivity extends ActionBarActivity with PinDialogFragment.PinDial
 
       case R.id.scanFriend => scanIntent()
     }
-    return super.onOptionsItemSelected(item)
+    super.onOptionsItemSelected(item)
   }
 
-  private def DNSLookup(input: String): Observable[(String, Option[String])] = {
-    Observable(subscriber => {
-      var user: String = null
-      var domain: String = null
-      var lookup: String = null
-      if (!input.contains("@")) {
-        user = input
-        domain = "toxme.se"
-        lookup = user + "._tox." + domain
-      } else {
-        user = input.substring(0, input.indexOf("@"))
-        domain = input.substring(input.indexOf("@") + 1)
-        lookup = user + "._tox." + domain
-      }
-      var txt: TXTRecord = null
-      try {
-        val records = new Lookup(lookup, Type.TXT).run()
-        txt = records(0).asInstanceOf[TXTRecord]
-        val txtString = txt.toString.substring(txt.toString.indexOf('"'))
-        if (txtString.contains("tox1")) {
-          val key = txtString.substring(11, 11 + 76)
-          subscriber.onNext((key, None))
-        } else if (txtString.contains("tox2")) {
-          val key = txtString.substring(12, 12 + 64)
-          val check = txtString.substring(12 + 64 + 7, 12 + 64 + 7 + 4)
-          subscriber.onNext((key, Some(check)))
-        }
-      } catch {
-        case e: Exception => e.printStackTrace()
-      }
-      subscriber.onCompleted()
-    })
+  private def scanIntent() {
+    val integrator = new IntentIntegrator(this)
+    integrator.initiateScan()
   }
 }

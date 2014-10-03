@@ -1,8 +1,8 @@
 <TextView xmlns:android="http://schemas.android.com/apk/res/android"
-    style="?android:attr/listSeparatorTextViewStyle"
     android:id="@+id/left_pane_header"
+    style="?android:attr/listSeparatorTextViewStyle"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:background="@android:color/white"
-    android:textSize="18sp"
-    android:textColor="@color/gray_darker" />
+    android:textColor="@color/gray_darker"
+    android:textSize="18sp" />

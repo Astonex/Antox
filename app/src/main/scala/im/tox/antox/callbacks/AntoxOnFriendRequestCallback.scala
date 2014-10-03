@@ -1,10 +1,7 @@
 package im.tox.antox.callbacks
 
-import android.app.Notification
-import android.app.PendingIntent
-import android.content.Context
-import android.content.Intent
-import android.content.SharedPreferences
+import android.app.{Notification, PendingIntent}
+import android.content.{Context, Intent}
 import android.preference.PreferenceManager
 import android.support.v4.app.NotificationCompat
 import android.util.Log
@@ -13,17 +10,14 @@ import im.tox.antox.activities.MainActivity
 import im.tox.antox.data.AntoxDB
 import im.tox.antox.tox.ToxSingleton
 import im.tox.jtoxcore.callbacks.OnFriendRequestCallback
-import AntoxOnFriendRequestCallback._
+
 //remove if not needed
-import scala.collection.JavaConversions._
 
 object AntoxOnFriendRequestCallback {
 
-  private val TAG = "im.tox.antox.TAG"
-
   val FRIEND_KEY = "im.tox.antox.FRIEND_KEY"
-
   val FRIEND_MESSAGE = "im.tox.antox.FRIEND_MESSAGE"
+  private val TAG = "im.tox.antox.TAG"
 }
 
 class AntoxOnFriendRequestCallback(private var ctx: Context) extends OnFriendRequestCallback {
@@ -38,7 +32,7 @@ class AntoxOnFriendRequestCallback(private var ctx: Context) extends OnFriendReq
     if (preferences.getBoolean("notifications_enable_notifications", true) !=
       false &&
       preferences.getBoolean("notifications_friend_request", true) !=
-      false) {
+        false) {
       val vibratePattern = Array[Long](0, 500)
       if (preferences.getBoolean("notifications_new_message_vibrate", true) ==
         false) {

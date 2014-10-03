@@ -1,14 +1,12 @@
 package im.tox.antox.callbacks
 
 import android.content.Context
-import android.media.AudioFormat
-import android.media.AudioManager
-import android.media.AudioTrack
+import android.media.{AudioFormat, AudioManager, AudioTrack}
 import android.util.Log
 import im.tox.antox.utils.AntoxFriend
 import im.tox.jtoxcore.callbacks.OnAudioDataCallback
+
 //remove if not needed
-import scala.collection.JavaConversions._
 
 class AntoxOnAudioDataCallback(private var ctx: Context) extends OnAudioDataCallback[AntoxFriend] {
 

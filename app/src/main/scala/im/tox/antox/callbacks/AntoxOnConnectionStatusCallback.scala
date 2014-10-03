@@ -3,15 +3,11 @@ package im.tox.antox.callbacks
 import android.content.Context
 import im.tox.antox.R
 import im.tox.antox.data.AntoxDB
-import im.tox.antox.tox.ToxSingleton
-import im.tox.antox.tox.Methods
-import im.tox.antox.tox.Reactive
-import im.tox.antox.utils.AntoxFriend
-import im.tox.antox.utils.Constants
+import im.tox.antox.tox.{Methods, Reactive, ToxSingleton}
+import im.tox.antox.utils.{AntoxFriend, Constants}
 import im.tox.jtoxcore.callbacks.OnConnectionStatusCallback
-import AntoxOnConnectionStatusCallback._
+
 //remove if not needed
-import scala.collection.JavaConversions._
 
 object AntoxOnConnectionStatusCallback {
 

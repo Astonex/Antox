@@ -8,8 +8,10 @@
     <color name="grey_darkest">#444444</color>
     <color name="black">#222222</color>
 
-    <color name="green">#81BF89</color>
-    <color name="blue">#3399FF</color>
+    <color name="green">#339554</color>
+    <color name="green_darker">#24683B</color>
+    <color name="blue">#6c5170</color>
+
     <color name="fab_normal">@color/green</color>
-    <color name="fab_pressed">@color/green</color>
+    <color name="fab_pressed">@color/green_darker</color>
 </resources>

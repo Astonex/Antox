@@ -1,17 +1,13 @@
 package im.tox.antox.utils
 
-import android.app.Activity
-import android.content.Context
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.ArrayAdapter
-import android.widget.ImageView
-import android.widget.TextView
 import java.util.List
+
+import android.content.Context
+import android.view.{LayoutInflater, View, ViewGroup}
+import android.widget.{ArrayAdapter, ImageView, TextView}
 import im.tox.antox.R
+
 //remove if not needed
-import scala.collection.JavaConversions._
 
 class DrawerArrayAdapter(context: Context, resourceId: Int, items: List[DrawerItem])
   extends ArrayAdapter[DrawerItem](context, resourceId, items) {
@@ -40,5 +36,6 @@ class DrawerArrayAdapter(context: Context, resourceId: Int, items: List[DrawerIt
 
     var imageView: ImageView = _
   }
+
 }
 

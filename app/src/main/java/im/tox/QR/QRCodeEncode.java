@@ -47,6 +47,40 @@ public final class QRCodeEncode {
         encoded = encodeContents(data, bundle, type, format);
     }
 
+    private static String guessAppropriateEncoding(CharSequence contents) {
+        // Very crude at the moment
+        for (int i = 0; i < contents.length(); i++) {
+            if (contents.charAt(i) > 0xFF) {
+                return "UTF-8";
+            }
+        }
+        return null;
+    }
+
+    private static String trim(String s) {
+        if (s == null) {
+            return null;
+        }
+        String result = s.trim();
+        return result.length() == 0 ? null : result;
+    }
+
+    private static String escapeMECARD(String input) {
+        if (input == null || (input.indexOf(':') < 0 && input.indexOf(';') < 0)) {
+            return input;
+        }
+        int length = input.length();
+        StringBuilder result = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            char c = input.charAt(i);
+            if (c == ':' || c == ';') {
+                result.append('\\');
+            }
+            result.append(c);
+        }
+        return result.toString();
+    }
+
     public String getContents() {
         return contents;
     }
@@ -215,34 +249,6 @@ public final class QRCodeEncode {
         Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         bitmap.setPixels(pixels, 0, width, 0, 0, width, height);
         return bitmap;
-    }
-
-    private static String guessAppropriateEncoding(CharSequence contents) {
-        // Very crude at the moment
-        for (int i = 0; i < contents.length(); i++) {
-            if (contents.charAt(i) > 0xFF) { return "UTF-8"; }
-        }
-        return null;
-    }
-
-    private static String trim(String s) {
-        if (s == null) { return null; }
-        String result = s.trim();
-        return result.length() == 0 ? null : result;
-    }
-
-    private static String escapeMECARD(String input) {
-        if (input == null || (input.indexOf(':') < 0 && input.indexOf(';') < 0)) { return input; }
-        int length = input.length();
-        StringBuilder result = new StringBuilder(length);
-        for (int i = 0; i < length; i++) {
-            char c = input.charAt(i);
-            if (c == ':' || c == ';') {
-                result.append('\\');
-            }
-            result.append(c);
-        }
-        return result.toString();
     }
 }
 

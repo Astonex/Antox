@@ -1,41 +1,17 @@
 package im.tox.antox.utils
 
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.util.Log
-import android.util.LruCache
+import java.io.{File, FileInputStream, FileNotFoundException, InputStream}
+
+import android.graphics.{Bitmap, BitmapFactory}
+import android.util.{Log, LruCache}
 import android.widget.ImageView
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileNotFoundException
-import java.io.InputStream
-import BitmapManager._
+import im.tox.antox.utils.BitmapManager._
+
 //remove if not needed
-import scala.collection.JavaConversions._
 
 object BitmapManager {
 
   private var mMemoryCache: LruCache[String, Bitmap] = _
-
-  private def getBitmapFromMemCache(key: String): Bitmap = mMemoryCache.get(key)
-
-  private def addBitmapToMemoryCache(key: String, bitmap: Bitmap) {
-    if (getBitmapFromMemCache(key) == null) mMemoryCache.put(key, bitmap)
-  }
-
-  private def calculateInSampleSize(options: BitmapFactory.Options, reqWidth: Int, reqHeight: Int): Int = {
-    val height = options.outHeight
-    val width = options.outWidth
-    var inSampleSize = 1
-    if (height > reqHeight || width > reqWidth) {
-      val halfHeight = height / 2
-      val halfWidth = width / 2
-      while ((halfHeight / inSampleSize) > reqHeight && (halfWidth / inSampleSize) > reqWidth) {
-        inSampleSize *= 2
-      }
-    }
-    inSampleSize
-  }
 
   def checkValidImage(file: File): Boolean = {
     var fis: FileInputStream = null
@@ -113,6 +89,26 @@ object BitmapManager {
         }
       }
     }
+  }
+
+  private def getBitmapFromMemCache(key: String): Bitmap = mMemoryCache.get(key)
+
+  private def addBitmapToMemoryCache(key: String, bitmap: Bitmap) {
+    if (getBitmapFromMemCache(key) == null) mMemoryCache.put(key, bitmap)
+  }
+
+  private def calculateInSampleSize(options: BitmapFactory.Options, reqWidth: Int, reqHeight: Int): Int = {
+    val height = options.outHeight
+    val width = options.outWidth
+    var inSampleSize = 1
+    if (height > reqHeight || width > reqWidth) {
+      val halfHeight = height / 2
+      val halfWidth = width / 2
+      while ((halfHeight / inSampleSize) > reqHeight && (halfWidth / inSampleSize) > reqWidth) {
+        inSampleSize *= 2
+      }
+    }
+    inSampleSize
   }
 }
 

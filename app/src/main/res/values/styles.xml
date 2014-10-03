@@ -13,8 +13,7 @@
     </style>
 
     <!-- Application theme. -->
-    <style name="AppTheme" parent="@style/Theme.AppCompat.Light.DarkActionBar">
-    </style>
+    <style name="AppTheme" parent="@style/Theme.AppCompat.Light.DarkActionBar"></style>
 
     <style name="AppTheme.Fab" parent="FloatingActionButton">
         <item name="floatingActionButtonColor">#6BC25F</item>

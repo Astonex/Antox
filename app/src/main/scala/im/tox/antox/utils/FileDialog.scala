@@ -1,19 +1,18 @@
 
 package im.tox.antox.utils
 
-import android.app.Activity
-import android.app.AlertDialog
-import android.app.Dialog
+import java.io.{File, FilenameFilter}
+import java.util.{ArrayList, List}
+
+import android.app.{Activity, AlertDialog, Dialog}
 import android.content.DialogInterface
 import android.os.Environment
 import android.util.Log
-import java.io.File
-import java.io.FilenameFilter
-import java.util.ArrayList
-import java.util.List
-import FileDialog._
-import ListenerList._
+import im.tox.antox.utils.FileDialog._
+import im.tox.antox.utils.ListenerList._
+
 //remove if not needed
+
 import scala.collection.JavaConversions._
 
 object FileDialog {
@@ -29,29 +28,23 @@ object FileDialog {
 
     def directorySelected(directory: File): Unit
   }
+
 }
 
 class FileDialog(private val activity: Activity, path: File) {
-
-  private val TAG = getClass.getName
-
-  private var fileList: Array[String] = _
-
-  private var currentPath: File = _
-
-  private var fileListenerList: ListenerList[FileSelectedListener] = new ListenerList[FileDialog.FileSelectedListener]()
-
-  private var dirListenerList: ListenerList[DirectorySelectedListener] = new ListenerList[FileDialog.DirectorySelectedListener]()
-
-  private var selectDirectoryOption: Boolean = _
-
-  private var fileEndsWith: String = _
 
   val newPath = if (!path.exists()) {
     Environment.getExternalStorageDirectory
   } else {
     path
   }
+  private val TAG = getClass.getName
+  private var fileList: Array[String] = _
+  private var currentPath: File = _
+  private var fileListenerList: ListenerList[FileSelectedListener] = new ListenerList[FileDialog.FileSelectedListener]()
+  private var dirListenerList: ListenerList[DirectorySelectedListener] = new ListenerList[FileDialog.DirectorySelectedListener]()
+  private var selectDirectoryOption: Boolean = _
+  private var fileEndsWith: String = _
 
   loadFileList(newPath)
 
@@ -121,7 +114,8 @@ class FileDialog(private val activity: Activity, path: File) {
         def accept(dir: File, filename: String): Boolean = {
           var sel = new File(dir, filename)
           if (!sel.canRead()) return false
-          if (selectDirectoryOption) return sel.isDirectory else {
+          if (selectDirectoryOption) return sel.isDirectory
+          else {
             var endsWith = if (fileEndsWith != null) filename.toLowerCase().endsWith(fileEndsWith) else true
             return endsWith || sel.isDirectory
           }
@@ -147,6 +141,7 @@ object ListenerList {
 
     def fireEvent(listener: L): Unit
   }
+
 }
 
 class ListenerList[L] {

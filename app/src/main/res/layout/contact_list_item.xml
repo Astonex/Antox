@@ -2,95 +2,105 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/list_selector"
-    android:padding="10dp" >
+    android:padding="10dp">
+
     <LinearLayout
-        android:orientation="horizontal"
-        android:gravity="center"
         android:layout_width="match_parent"
-        android:layout_marginTop="0dp"
+        android:layout_height="50dp"
         android:layout_marginBottom="0dp"
-        android:layout_height="50dp">
+        android:layout_marginTop="0dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
         <RelativeLayout
             android:layout_width="50dp"
             android:layout_height="50dp">
+
             <TextView
                 android:id="@+id/avatar"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
-                android:background="@drawable/circle_grey_light"
-                />
+                android:background="@drawable/circle_grey_light" />
+
             <TextView
                 android:id="@+id/icon"
                 android:layout_width="15dp"
                 android:layout_height="15dp"
-                android:layout_alignParentRight="true"
                 android:layout_alignParentBottom="true"
-                android:background="@color/green"/>
+                android:layout_alignParentRight="true"
+                android:background="@color/green" />
         </RelativeLayout>
+
         <LinearLayout
-            android:duplicateParentState="true"
-            android:orientation="vertical"
             android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:layout_marginLeft="15dp"
-            android:layout_height="match_parent">
+            android:duplicateParentState="true"
+            android:orientation="vertical">
+
             <LinearLayout
-                android:duplicateParentState="true"
-                android:orientation="horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="0.5">
+                android:layout_weight="0.5"
+                android:duplicateParentState="true"
+                android:orientation="horizontal">
+
                 <TextView
                     android:id="@+id/friend_name"
-                    android:duplicateParentState="true"
-                    android:textColor="@color/black"
                     android:layout_width="0dp"
+                    android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
                     android:layout_weight="1"
-                    android:layout_height="wrap_content"
+                    android:duplicateParentState="true"
                     android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textSize="19sp"/>
+                    android:textColor="@color/black"
+                    android:textSize="19sp" />
+
                 <TextView
                     android:id="@+id/last_message_timestamp"
-                    android:duplicateParentState="true"
-                    android:text="10:00 PM"
-                    android:textSize="@dimen/text_small"
-                    android:textColor="@color/gray_darker"
-                    android:layout_gravity="center_vertical"
-                    android:gravity="center_vertical"
                     android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
                     android:layout_marginRight="10dp"
-                    android:layout_height="wrap_content" />
+                    android:duplicateParentState="true"
+                    android:gravity="center_vertical"
+                    android:text="10:00 PM"
+                    android:textColor="@color/gray_darker"
+                    android:textSize="@dimen/text_small" />
             </LinearLayout>
+
             <LinearLayout
-                android:duplicateParentState="true"
-                android:orientation="horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="0.5">
+                android:layout_weight="0.5"
+                android:duplicateParentState="true"
+                android:orientation="horizontal">
+
                 <TextView
                     android:id="@+id/friend_status"
-                    android:duplicateParentState="true"
-                    android:textColor="@color/gray_darker"
                     android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_gravity="center_vertical"
                     android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginRight="10dp"
+                    android:layout_weight="1"
+                    android:duplicateParentState="true"
                     android:ellipsize="marquee"
                     android:singleLine="true"
                     android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:layout_marginRight="10dp"
-                    android:textSize="15sp"/>
+                    android:textColor="@color/gray_darker"
+                    android:textSize="15sp" />
+
                 <TextView
                     android:id="@+id/unread_messages_count"
-                    android:layout_gravity="center_vertical"
-                    android:textColor="@color/white"
                     android:layout_width="20dp"
                     android:layout_height="20dp"
+                    android:layout_gravity="center_vertical"
                     android:layout_marginRight="10dp"
+                    android:background="@drawable/circle_green"
                     android:gravity="center"
-                    android:textStyle="bold"
                     android:text="2"
-                    android:background="@drawable/circle_green"/>
+                    android:textColor="@color/white"
+                    android:textStyle="bold" />
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>

@@ -1,29 +1,20 @@
 package im.tox.antox.adapters
 
+import java.util.ArrayList
+
 import android.app.Activity
 import android.content.Context
 import android.util.Log
-import android.view.Gravity
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.BaseAdapter
-import android.widget.Filter
+import android.view.{Gravity, LayoutInflater, View, ViewGroup}
 import android.widget.Filter.FilterResults
-import android.widget.Filterable
-import android.widget.ImageView
-import android.widget.TextView
-import java.util.ArrayList
+import android.widget.{BaseAdapter, Filter, Filterable, ImageView, TextView}
 import im.tox.antox.R
+import im.tox.antox.adapters.LeftPaneAdapter._
 import im.tox.antox.data.AntoxDB
 import im.tox.antox.tox.ToxSingleton
-import im.tox.antox.utils.Constants
-import im.tox.antox.utils.IconColor
-import im.tox.antox.utils.LeftPaneItem
-import im.tox.antox.utils.PrettyTimestamp
-import LeftPaneAdapter._
+import im.tox.antox.utils.{Constants, IconColor, LeftPaneItem, PrettyTimestamp}
+
 //remove if not needed
-import scala.collection.JavaConversions._
 
 object LeftPaneAdapter {
 
@@ -39,17 +30,15 @@ object LeftPaneAdapter {
 
     var timeText: TextView = _
   }
+
 }
 
 class LeftPaneAdapter(private var context: Context) extends BaseAdapter with Filterable {
 
-  private var mDataOriginal: ArrayList[LeftPaneItem] = new ArrayList[LeftPaneItem]()
-
-  private var mData: ArrayList[LeftPaneItem] = new ArrayList[LeftPaneItem]()
-
-  private var mInflater: LayoutInflater = context.asInstanceOf[Activity].getLayoutInflater
-
   var mFilter: Filter = _
+  private var mDataOriginal: ArrayList[LeftPaneItem] = new ArrayList[LeftPaneItem]()
+  private var mData: ArrayList[LeftPaneItem] = new ArrayList[LeftPaneItem]()
+  private var mInflater: LayoutInflater = context.asInstanceOf[Activity].getLayoutInflater
 
   def addItem(item: LeftPaneItem) {
     mData.add(item)
@@ -57,18 +46,13 @@ class LeftPaneAdapter(private var context: Context) extends BaseAdapter with Fil
     notifyDataSetChanged()
   }
 
-  override def getItemViewType(position: Int): Int = {
-    val `type` = getItem(position).viewType
-    `type`
-  }
-
   override def getViewTypeCount(): Int = Constants.TYPE_MAX_COUNT
 
   override def getCount(): Int = mData.size
 
-  override def getItem(position: Int): LeftPaneItem = mData.get(position)
-
   def getKey(position: Int): String = getItem(position).key
+
+  override def getItem(position: Int): LeftPaneItem = mData.get(position)
 
   override def getItemId(position: Int): Long = position
 
@@ -154,6 +138,11 @@ class LeftPaneAdapter(private var context: Context) extends BaseAdapter with Fil
       })
     }
     newConvertView
+  }
+
+  override def getItemViewType(position: Int): Int = {
+    val `type` = getItem(position).viewType
+    `type`
   }
 
   override def getFilter(): Filter = {

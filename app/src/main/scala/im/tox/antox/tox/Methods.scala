@@ -2,19 +2,25 @@ package im.tox.antox.tox
 
 import android.content.Context
 import im.tox.antox.data.AntoxDB
-import im.tox.antox.tox.ToxSingleton
 import im.tox.antox.utils.AntoxFriend
-import im.tox.antox.utils.Message
-import rx.lang.scala.JavaConversions
 import rx.lang.scala.Observable
-import rx.lang.scala.Observer
-import rx.lang.scala.Subscriber
-import rx.lang.scala.Subscription
-import rx.lang.scala.Subject
 import rx.lang.scala.schedulers.IOScheduler
-import rx.lang.scala.schedulers.AndroidMainThreadScheduler
 
 object Methods {
+
+  def sendUnsentMessages(ctx: Context) {
+    val db = new AntoxDB(ctx).open(false)
+    val unsentMessageList = db.getUnsentMessageList
+    db.close()
+    for (unsentMessage <- unsentMessageList) {
+      val mFriend = ToxSingleton.getAntoxFriend(unsentMessage.key)
+      mFriend.foreach(friend => {
+        if (friend.isOnline && ToxSingleton.jTox != null) {
+          sendMessage(ctx, unsentMessage.key, unsentMessage.message, Some(unsentMessage.id))
+        }
+      })
+    }
+  }
 
   def sendMessage(ctx: Context, key: String, msg: String, mId: Option[Integer]) = {
     Observable[Boolean](subscriber => {
@@ -81,19 +87,5 @@ object Methods {
       ToxSingleton.updateMessages(ctx)
       subscriber.onCompleted()
     }).subscribeOn(IOScheduler()).subscribe()
-  }
-
-  def sendUnsentMessages(ctx: Context) {
-    val db = new AntoxDB(ctx).open(false)
-    val unsentMessageList = db.getUnsentMessageList
-    db.close()
-    for (unsentMessage <- unsentMessageList) {
-      val mFriend = ToxSingleton.getAntoxFriend(unsentMessage.key)
-      mFriend.foreach(friend => {
-        if (friend.isOnline && ToxSingleton.jTox != null) {
-          sendMessage(ctx, unsentMessage.key, unsentMessage.message, Some(unsentMessage.id))
-        }
-      })
-    }
   }
 }

@@ -1,71 +1,28 @@
 package im.tox.antox.activities
 
-import android.app.Activity
-import android.app.AlertDialog
-import android.content.CursorLoader
-import android.content.DialogInterface
-import android.content.Intent
-import android.content.SharedPreferences
+import java.io.{File, IOException}
+import java.util.Date
+
+import android.app.{Activity, AlertDialog}
+import android.content.{CursorLoader, DialogInterface, Intent, SharedPreferences}
 import android.database.Cursor
 import android.net.Uri
-import android.os.Bundle
-import android.os.Environment
+import android.os.{Bundle, Environment}
 import android.preference.PreferenceManager
 import android.provider.MediaStore
-import android.support.v4.app.Fragment
-import android.support.v7.app.ActionBarActivity
-import android.support.v7.app.ActionBar
-import android.text.Editable
-import android.text.TextWatcher
+import android.support.v7.app.{ActionBar, ActionBarActivity}
+import android.text.{Editable, TextWatcher}
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.AbsListView
-import android.widget.EditText
-import android.widget.ListView
-import android.widget.TextView
-import java.io.File
-import java.io.IOException
-import java.util.ArrayList
-import java.util.Date
-import java.util.List
-import java.util.Random
-import java.util.concurrent.TimeUnit
+import android.view.{Menu, MenuInflater, View}
+import android.widget.{AbsListView, EditText, ListView, TextView}
 import im.tox.antox.R
 import im.tox.antox.adapters.ChatMessagesAdapter
 import im.tox.antox.data.AntoxDB
-import im.tox.antox.tox.ToxSingleton
-import im.tox.antox.tox.Reactive
-import im.tox.antox.tox.Methods
-import im.tox.antox.utils.AntoxFriend
-import im.tox.antox.utils.ChatMessages
-import im.tox.antox.utils.Constants
-import im.tox.antox.utils.FileDialog
-import im.tox.antox.utils.FriendInfo
-import im.tox.antox.utils.IconColor
-import im.tox.antox.utils.Tuple
-import im.tox.antox.utils.UserStatus
+import im.tox.antox.tox.{Methods, Reactive, ToxSingleton}
+import im.tox.antox.utils.{Constants, FileDialog, FriendInfo, IconColor, UserStatus}
 import im.tox.jtoxcore.ToxException
-import im.tox.jtoxcore.ToxUserStatus
-import rx.{ Observable => JObservable }
-import rx.{ Observer => JObserver }
-import rx.{ Subscriber => JSubscriber }
-import rx.{ Subscription => JSubscription }
-import rx.android.schedulers.AndroidSchedulers
-import rx.functions.Action1
-import rx.schedulers.Schedulers
-import rx.subscriptions.Subscriptions
-import rx.lang.scala.JavaConversions
-import rx.lang.scala.Observable
-import rx.lang.scala.Observer
-import rx.lang.scala.Subscriber
-import rx.lang.scala.Subscription
-import rx.lang.scala.Subject
-import rx.lang.scala.schedulers.IOScheduler
-import rx.lang.scala.schedulers.AndroidMainThreadScheduler
+import rx.lang.scala.schedulers.{AndroidMainThreadScheduler, IOScheduler}
+import rx.lang.scala.{Observable, Subscription}
 
 class ChatActivity extends ActionBarActivity {
   val TAG: String = "im.tox.antox.activities.ChatActivity"
@@ -88,24 +45,25 @@ class ChatActivity extends ActionBarActivity {
   var scrolling: Boolean = false
   var antoxDB: AntoxDB = null
   var photoPath: String = null
+
   override def onCreate(savedInstanceState: Bundle) = {
     super.onCreate(savedInstanceState)
     overridePendingTransition(R.anim.slide_from_right, R.anim.fade_scale_out)
     setContentView(R.layout.activity_chat)
-    val actionBar = getSupportActionBar()
+    val actionBar = getSupportActionBar
     val avatarView = getLayoutInflater.inflate(R.layout.avatar_actionview, null)
     actionBar.setCustomView(avatarView)
     actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM)
-    val extras: Bundle = getIntent().getExtras()
+    val extras: Bundle = getIntent.getExtras
     val key = extras.getString("key")
     activeKey = key
     val thisActivity = this
     Log.d(TAG, "key = " + key)
     val preferences = PreferenceManager.getDefaultSharedPreferences(this)
-    adapter = new ChatMessagesAdapter(this, getCursor(), antoxDB.getMessageIds(key, preferences.getBoolean("action_messages", true)))
+    adapter = new ChatMessagesAdapter(this, getCursor, antoxDB.getMessageIds(key, preferences.getBoolean("action_messages", true)))
     displayNameView = this.findViewById(R.id.displayName).asInstanceOf[TextView]
-    statusIconView = this.findViewById(R.id.icon).asInstanceOf[View]
-    avatarActionView = this.findViewById(R.id.avatarActionView).asInstanceOf[View]
+    statusIconView = this.findViewById(R.id.icon)
+    avatarActionView = this.findViewById(R.id.avatarActionView)
     avatarActionView.setOnClickListener(new View.OnClickListener() {
       override def onClick(v: View) {
         thisActivity.finish()
@@ -132,17 +90,15 @@ class ChatActivity extends ActionBarActivity {
     messageBox = this.findViewById(R.id.yourMessage).asInstanceOf[EditText]
     messageBox.addTextChangedListener(new TextWatcher() {
       override def beforeTextChanged(charSequence: CharSequence, i: Int, i2: Int, i3: Int) {
-        val isTyping = (i3 > 0)
+        val isTyping = i3 > 0
         val mFriend = ToxSingleton.getAntoxFriend(key)
         mFriend.foreach(friend => {
-          if (friend.isOnline()) {
+          if (friend.isOnline) {
             try {
               ToxSingleton.jTox.sendIsTyping(friend.getFriendnumber(), isTyping)
             } catch {
-              case te: ToxException => {
-              }
-              case e: Exception => {
-              }
+              case te: ToxException =>
+              case e: Exception =>
             }
           }
         })
@@ -170,10 +126,8 @@ class ChatActivity extends ActionBarActivity {
           try {
             ToxSingleton.jTox.sendIsTyping(friend.getFriendnumber(), false)
           } catch {
-            case te: ToxException => {
-            }
-            case e: Exception => {
-            }
+            case te: ToxException =>
+            case e: Exception =>
           }
         })
       }
@@ -190,11 +144,10 @@ class ChatActivity extends ActionBarActivity {
         builder.setItems(items, new DialogInterface.OnClickListener() {
 
           override def onClick(dialogInterface: DialogInterface, i: Int) = i match {
-            case 0 => {
-              var intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+            case 0 =>
+              val intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
               startActivityForResult(intent, Constants.IMAGE_RESULT)
-            }
-            case 1 => {
+            case 1 =>
               val cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE)
               val image_name = "Antoxpic" + new Date().toString
               val storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
@@ -207,8 +160,7 @@ class ChatActivity extends ActionBarActivity {
               } catch {
                 case e: IOException => e.printStackTrace()
               }
-            }
-            case 2 => {
+            case 2 =>
               val mPath = new File(Environment.getExternalStorageDirectory + "//DIR//")
               val fileDialog = new FileDialog(thisActivity, mPath)
               fileDialog.addFileListener(new FileDialog.FileSelectedListener() {
@@ -217,7 +169,6 @@ class ChatActivity extends ActionBarActivity {
                 }
               })
               fileDialog.showDialog()
-            }
 
           }
         })
@@ -226,15 +177,36 @@ class ChatActivity extends ActionBarActivity {
     })
   }
 
-  override def onCreateOptionsMenu(menu: Menu): Boolean = {
-    // Inflate the menu items for use in the action bar
-    val inflater: MenuInflater = getMenuInflater()
-    inflater.inflate(R.menu.chat_activity, menu)
-    super.onCreateOptionsMenu(menu)
+  private def sendMessage() {
+    Log.d(TAG, "sendMessage")
+    if (messageBox.getText != null && messageBox.getText.toString.length() == 0) {
+      return
+    }
+    var msg: String = null
+    if (messageBox.getText != null) {
+      msg = messageBox.getText.toString
+    } else {
+      msg = ""
+    }
+    val key = activeKey
+    messageBox.setText("")
+    Methods.sendMessage(this, key, msg, None)
   }
 
-  def setDisplayName(name: String) = {
-    this.displayNameView.setText(name)
+  def getCursor: Cursor = {
+    if (antoxDB == null) {
+      antoxDB = new AntoxDB(this)
+    }
+    val preferences: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
+    val cursor: Cursor = antoxDB.getMessageCursor(activeKey, preferences.getBoolean("action_messages", true))
+    cursor
+  }
+
+  override def onCreateOptionsMenu(menu: Menu): Boolean = {
+    // Inflate the menu items for use in the action bar
+    val inflater: MenuInflater = getMenuInflater
+    inflater.inflate(R.menu.chat_activity, menu)
+    super.onCreateOptionsMenu(menu)
   }
 
   override def onResume() = {
@@ -242,10 +214,10 @@ class ChatActivity extends ActionBarActivity {
     val thisActivity = this
     Reactive.activeKey.onNext(Some(activeKey))
     Reactive.chatActive.onNext(true)
-    val antoxDB = new AntoxDB(getApplicationContext())
+    val antoxDB = new AntoxDB(getApplicationContext)
     antoxDB.markIncomingMessagesRead(activeKey)
     ToxSingleton.clearUselessNotifications(activeKey)
-    ToxSingleton.updateMessages(getApplicationContext())
+    ToxSingleton.updateMessages(getApplicationContext)
     messagesSub = Reactive.updatedMessages.subscribe(x => {
       Log.d(TAG, "Messages updated")
       updateChat()
@@ -255,45 +227,29 @@ class ChatActivity extends ActionBarActivity {
       .subscribeOn(IOScheduler())
       .observeOn(AndroidMainThreadScheduler())
       .subscribe(fi => {
-        val key = activeKey
-        val mFriend: Option[FriendInfo] = fi
-          .filter(f => f.friendKey == key)
-          .headOption
-        mFriend match {
-          case Some(friend) => {
-            if (friend.alias != "") {
-              thisActivity.setDisplayName(friend.alias)
-            } else {
-              thisActivity.setDisplayName(friend.friendName)
-            }
-            thisActivity.statusIconView.setBackground(thisActivity.getResources.getDrawable(IconColor.iconDrawable(friend.isOnline, UserStatus.getToxUserStatusFromString(friend.friendStatus))))
+      val key = activeKey
+      val mFriend: Option[FriendInfo] = fi.find(f => f.friendKey == key)
+      mFriend match {
+        case Some(friend) =>
+          if (friend.alias != "") {
+            thisActivity.setDisplayName(friend.alias)
+          } else {
+            thisActivity.setDisplayName(friend.friendName)
           }
-          case None => {
-            thisActivity.setDisplayName("")
-          }
-        }
-      })
+          thisActivity.statusIconView.setBackground(thisActivity.getResources.getDrawable(IconColor.iconDrawable(friend.isOnline, UserStatus.getToxUserStatusFromString(friend.friendStatus))))
+        case None =>
+          thisActivity.setDisplayName("")
+      }
+    })
   }
 
-  private def sendMessage() {
-    Log.d(TAG, "sendMessage")
-    if (messageBox.getText() != null && messageBox.getText().toString().length() == 0) {
-      return
-    }
-    var msg: String = null
-    if (messageBox.getText() != null) {
-      msg = messageBox.getText().toString()
-    } else {
-      msg = ""
-    }
-    val key = activeKey
-    messageBox.setText("")
-    Methods.sendMessage(this, key, msg, None)
+  def setDisplayName(name: String) = {
+    this.displayNameView.setText(name)
   }
 
   def updateChat() = {
     val observable: Observable[Cursor] = Observable((observer) => {
-      val cursor: Cursor = getCursor()
+      val cursor: Cursor = getCursor
       observer.onNext(cursor)
       observer.onCompleted()
     })
@@ -301,19 +257,10 @@ class ChatActivity extends ActionBarActivity {
       .subscribeOn(IOScheduler())
       .observeOn(AndroidMainThreadScheduler())
       .subscribe((cursor: Cursor) => {
-        adapter.changeCursor(cursor)
-        Log.d(TAG, "changing chat list cursor")
-      })
+      adapter.changeCursor(cursor)
+      Log.d(TAG, "changing chat list cursor")
+    })
     Log.d("ChatFragment", "new key: " + activeKey)
-  }
-
-  private def updateProgress() {
-    val start = chatListView.getFirstVisiblePosition
-    val end = chatListView.getLastVisiblePosition
-    for (i <- start to end) {
-      val view = chatListView.getChildAt(i - start)
-      chatListView.getAdapter.getView(i, view, chatListView)
-    }
   }
 
   override def onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
@@ -349,20 +296,12 @@ class ChatActivity extends ActionBarActivity {
     }
   }
 
-  def getCursor(): Cursor = {
-    if (antoxDB == null) {
-      antoxDB = new AntoxDB(this)
-    }
-    val preferences: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
-    val cursor: Cursor = antoxDB.getMessageCursor(activeKey, preferences.getBoolean("action_messages", true))
-    return cursor
-  }
-
   override def onPause() = {
     super.onPause()
     Reactive.chatActive.onNext(false)
-    if (isFinishing()) overridePendingTransition(R.anim.fade_scale_in, R.anim.slide_to_right);
+    if (isFinishing) overridePendingTransition(R.anim.fade_scale_in, R.anim.slide_to_right)
     messagesSub.unsubscribe()
     titleSub.unsubscribe()
   }
+
 }

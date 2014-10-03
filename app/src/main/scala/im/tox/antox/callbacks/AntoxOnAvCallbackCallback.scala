@@ -3,15 +3,11 @@ package im.tox.antox.callbacks
 import android.content.Context
 import android.util.Log
 import im.tox.antox.tox.ToxSingleton
-import im.tox.antox.utils.AntoxFriend
-import im.tox.antox.utils.CaptureAudio
-import im.tox.jtoxcore.ToxAvCallbackID
-import im.tox.jtoxcore.ToxCallType
-import im.tox.jtoxcore.ToxCodecSettings
-import im.tox.jtoxcore.ToxException
+import im.tox.antox.utils.{AntoxFriend, CaptureAudio}
 import im.tox.jtoxcore.callbacks.OnAvCallbackCallback
+import im.tox.jtoxcore.{ToxAvCallbackID, ToxCallType, ToxCodecSettings, ToxException}
+
 //remove if not needed
-import scala.collection.JavaConversions._
 
 class AntoxOnAvCallbackCallback(private var ctx: Context) extends OnAvCallbackCallback[AntoxFriend] {
 

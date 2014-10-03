@@ -5,8 +5,6 @@ import android.support.v7.app.ActionBarActivity
 import android.view.MenuItem
 import android.webkit.WebView
 import im.tox.antox.R
-//remove if not needed
-import scala.collection.JavaConversions._
 
 class License extends ActionBarActivity {
 

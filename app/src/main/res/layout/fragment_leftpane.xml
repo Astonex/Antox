@@ -15,32 +15,32 @@
         android:orientation="horizontal">
 
         <LinearLayout
-            android:gravity="center"
             android:layout_width="24dp"
-            android:layout_height="48dp">
+            android:layout_height="48dp"
+            android:gravity="center">
 
             <ImageButton
                 android:id="@+id/tButton"
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
-                android:background="@android:color/transparent"
-                android:src="@drawable/ic_drawer"
                 android:layout_marginLeft="-16dp"
-                android:onClick="onTButtonClick"/>
+                android:background="@android:color/transparent"
+                android:onClick="onTButtonClick"
+                android:src="@drawable/ic_drawer" />
         </LinearLayout>
 
         <com.astuetz.PagerSlidingTabStrip
             android:id="@+id/tabs"
             android:layout_width="match_parent"
+            android:layout_height="48dip"
             android:background="@color/blue"
             android:textColor="@color/white_absolute"
             app:pstsDividerColor="@color/blue"
             app:pstsIndicatorColor="@color/white_absolute"
-            app:pstsUnderlineHeight="1dp"
             app:pstsIndicatorHeight="4dp"
             app:pstsShouldExpand="true"
             app:pstsTabPaddingLeftRight="5dp"
-            android:layout_height="48dip" />
+            app:pstsUnderlineHeight="1dp" />
     </LinearLayout>
 
     <android.support.v4.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -49,10 +49,10 @@
         android:layout_height="match_parent">
 
         <android.support.v4.view.ViewPager
-            android:background="@color/white_absolute"
             android:id="@+id/pager"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"></android.support.v4.view.ViewPager>
+            android:layout_height="match_parent"
+            android:background="@color/white_absolute"></android.support.v4.view.ViewPager>
 
         <ListView
             android:id="@+id/left_drawer"

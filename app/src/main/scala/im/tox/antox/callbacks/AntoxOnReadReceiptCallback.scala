@@ -2,13 +2,13 @@ package im.tox.antox.callbacks
 
 import android.content.Context
 import android.util.Log
+import im.tox.antox.callbacks.AntoxOnReadReceiptCallback._
 import im.tox.antox.data.AntoxDB
 import im.tox.antox.tox.ToxSingleton
 import im.tox.antox.utils.AntoxFriend
 import im.tox.jtoxcore.callbacks.OnReadReceiptCallback
-import AntoxOnReadReceiptCallback._
+
 //remove if not needed
-import scala.collection.JavaConversions._
 
 object AntoxOnReadReceiptCallback {
 
