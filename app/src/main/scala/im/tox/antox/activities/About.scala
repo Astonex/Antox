@@ -11,8 +11,6 @@ import android.view.View
 import android.widget.TextView
 import java.util.regex.Pattern
 import im.tox.antox.R
-//remove if not needed
-import scala.collection.JavaConversions._
 
 class About extends ActionBarActivity {
 
