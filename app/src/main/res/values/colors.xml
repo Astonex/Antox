@@ -12,9 +12,8 @@
     <color name="green_darker">#24683B</color>
     <color name="orange">#FF9900</color>
     <color name="red">#FF3333</color>
-    <color name="blue">#336699</color>
 
-    <color name="brand_primary">@color/blue</color>
+    <color name="brand_primary">@color/purple_dark</color>
     <color name="brand_secondary">@color/green</color>
 
     <color name="online">@color/green</color>
