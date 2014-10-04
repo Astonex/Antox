@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
      Copyright (c) 2014 Mark Winter
+     Copyright (c) 2014 Ollie Hunt
+     Copyright (c) 2014 Emil Suleymanov
 
      This program is free software; you can redistribute it and/or
      modify it under the terms of the GNU General Public License
@@ -19,7 +21,7 @@
 -->
 <resources>
     <color name="white_absolute">#ffffff</color>
-    <color name="white">#f0f0f0</color>
+    <color name="white">#f3f3f3</color>
     <color name="grey_light">#EAEAEA</color>
     <color name="grey">#dcdcdc</color>
     <color name="grey_dark">@android:color/darker_gray</color>
@@ -32,7 +34,7 @@
     <color name="red">#FF3333</color>
     <color name="purple_dark">#6c5170</color>
 
-    <color name="brand_primary">@color/grey_darkest</color>
+    <color name="brand_primary">@color/purple_dark</color>
     <color name="brand_secondary">@color/green</color>
 
     <color name="online">@color/green</color>
