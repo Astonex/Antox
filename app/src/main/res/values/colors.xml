@@ -1,15 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+     Copyright (c) 2014 Mark Winter
+     Copyright (c) 2014 Ollie Hunt
+     Copyright (c) 2014 Emil Suleymanov
+
+     This program is free software; you can redistribute it and/or
+     modify it under the terms of the GNU General Public License
+     as published by the Free Software Foundation; either version 2
+     of the License, or (at your option) any later version.
+
+     This program is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     GNU General Public License for more details.
+
+     You should have received a copy of the GNU General Public License
+     along with this program; if not, write to the Free Software
+     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+     MA  02110-1301, USA.
+-->
 <resources>
     <color name="white_absolute">#ffffff</color>
-    <color name="white">#f0f0f0</color>
+    <color name="white">#f3f3f3</color>
     <color name="grey_light">#EAEAEA</color>
     <color name="grey">#dcdcdc</color>
-    <color name="gray_darker">@android:color/darker_gray</color>
+    <color name="grey_dark">@android:color/darker_gray</color>
     <color name="grey_darkest">#444444</color>
     <color name="black">#222222</color>
 
-    <color name="green">#81BF89</color>
-    <color name="blue">#6c5170</color>
+    <color name="green">#339554</color>
+    <color name="green_darker">#24683B</color>
+    <color name="orange">#FF9900</color>
+    <color name="red">#FF3333</color>
+    <color name="purple_dark">#6c5170</color>
+
+    <color name="brand_primary">@color/purple_dark</color>
+    <color name="brand_secondary">@color/green</color>
+
+    <color name="online">@color/green</color>
+    <color name="away">@color/orange</color>
+    <color name="busy">@color/red</color>
+    <color name="offline">@color/grey_dark</color>
+    <color name="action_bar_background">@color/brand_primary</color>
+    <color name="sent_message_background">@color/brand_primary</color>
     <color name="fab_normal">@color/green</color>
-    <color name="fab_pressed">@color/green</color>
+    <color name="fab_pressed">@color/green_darker</color>
+    <color name="unread_indicator_background">@color/brand_secondary</color>
+
+    <color name="tab_selected">@color/white</color>
+    <color name="tab_highlight">#aaaaaaaa</color>
 </resources>
