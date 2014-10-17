@@ -1,4 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+     Copyright (c) 2014 Mark Winter
+
+     This program is free software; you can redistribute it and/or
+     modify it under the terms of the GNU General Public License
+     as published by the Free Software Foundation; either version 2
+     of the License, or (at your option) any later version.
+
+     This program is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     GNU General Public License for more details.
+
+     You should have received a copy of the GNU General Public License
+     along with this program; if not, write to the Free Software
+     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+     MA  02110-1301, USA.
+-->
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory android:title="@string/pref_header_notifications">
         <!-- A 'parent' preference, which enables/disables child preferences (below)
@@ -39,6 +57,11 @@
             android:defaultValue="true"
             android:key="wifi_only"
             android:title="@string/pref_title_wifi_only" />
+
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="auto_start"
+            android:title="@string/pref_title_start_on_boot" />
 
         <CheckBoxPreference
             android:defaultValue="false"
