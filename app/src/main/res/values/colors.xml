@@ -12,8 +12,9 @@
     <color name="orange">#FF9900</color>
     <color name="red">#FF3333</color>
     <color name="purple_dark">#6c5170</color>
+    <color name="blue_grey">#607d8b</color>
 
-    <color name="brand_primary">@color/purple_dark</color>
+    <color name="brand_primary">@color/blue_grey</color>
     <color name="brand_secondary">@color/green</color>
     <color name="brand_secondary_dark">@color/green_dark</color>
 
