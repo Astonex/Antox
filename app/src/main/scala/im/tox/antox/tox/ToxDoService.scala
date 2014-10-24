@@ -1,4 +1,3 @@
-
 package im.tox.antox.tox
 
 import android.app.Service
