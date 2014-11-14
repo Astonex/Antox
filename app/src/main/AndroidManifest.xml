@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="im.tox.antox"
-    android:versionCode="44"
-    android:versionName="0.14.1"
+    android:versionCode="45"
+    android:versionName="0.14.2"
     android:permission="android.permission.RECEIVE_BOOT_COMPLETED" >
 
     <uses-permission android:name="android.permission.INTERNET" />
