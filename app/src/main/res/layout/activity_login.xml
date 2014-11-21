@@ -1,6 +1,6 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:background="@drawable/test_bg"
+    android:background="@color/brand_primary"
     android:gravity="top"
     android:fillViewport="true"
     android:layout_height="match_parent">
@@ -8,7 +8,7 @@
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/login_bg"
+        android:background="@color/brand_primary"
         android:paddingBottom="@dimen/margin_large"
         android:paddingLeft="@dimen/margin_large"
         android:paddingRight="@dimen/margin_large"
