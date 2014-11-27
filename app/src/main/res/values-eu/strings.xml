@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name" translatable="false">Antox</string>
+
+    <!-- Activity titles -->
+    <string name="title_activity_add_friend">Laguna gehitu</string>
+    <string name="title_activity_friend_profile">Lagunaren profila</string>
+    <string name="title_activity_profile_settings">Profilaren aukerak</string>
+
+    <!-- Navigation / Action Bar -->
+    <string name="add_friend">Laguna gehitu</string>
+
+    <!-- Login Activity -->
+    <string name="login_must_fill_in">Profil izen bat idatzi behar duzu</string>
+    <string name="login_login">Saioa hasi</string>
+    <string name="login_account_hint">Profilaren izena</string>
+    <string name="login_create_account_text">Tox profila sortu</string>
+    <string name="login_bad_login">Profil izena ez da ezagutu</string>
+
+    <!-- Create Account Activity -->
+    <string name="create_name_hint">Profilaren izena</string>
+    <string name="create_text">Eslogana hemen</string>
+    <string name="create_register">Erregistratu</string>
+    <string name="create_register_incog">Ezkutuan erregistratu</string>
+    <string name="create_skip">Edonork zure profil izena erabiliz zu gehitzea baimendu</string>
+    <string name="create_must_fill_in">Eremu guztiak bete behar dituzu</string>
+    <string name="create_bad_profile_name">Profil izenak ezin ditu ez hutsuneak ez barrak eduki ezta hutsik egon</string>
+    <string name="create_profile_exists">Profil izen hau existitzen da dagoeneko</string>
+
+    <!-- Main Activity -->
+    <string name="main_no_active_chat">Txat aktiborik ez. Hasi bat ezkerreko paneletik lagun bat aukeratuz.</string>
+    <string name="main_recent_no">Duela gutxiko elkarrizketarik ez</string>
+    <string name="main_no_internet">Interneteko konexiorik ez</string>
+    <string name="main_not_connected">Interneteko konexiorik ez da detektatu. Interneteko konexiorik gabe, funtzionalitate
+		mugatuak izango dituzu Antox LANerako soilik erabiltzen ari ez zaren bitartean</string>
+    <string name="search_all_contacts">Kontaktu guztietan bilatu</string>
+
+    <!-- Chat Activity -->
+    <string name="chat_enter_message">Mezu bat bidali</string>
+    <string name="chat_file_transfer">Fitxategi transferentzia</string>
+
+    <!-- Add Friend Activity -->
+    <string name="addfriend_friend_key">Zure lagunaren Tox IDa</string>
+    <string name="addfriend_friend_message">Zure eskaerarekin mezu bat bidali</string>
+    <string name="addfriend_button">Laguna gehitu</string>
+    <string name="addfriend_friend_added">Laguna gehitu da</string>
+    <string name="addfriend_friend_exists">Laguna existitzen da jada</string>
+    <string name="scanqr_button">QR kodea eskaneatu</string>
+    <string name="invalid_friend_ID">Tox ID baliogabea</string>
+    <string name="addfriend_nick_hint">Ezizen bat ezarri zure lagunarentzako</string>
+    <string name="addfriend_optional_title">Hautazko gehigarriak</string>
+    <string name="dialog_pin">Sartu zure lagunaren pina</string>
+    <string name="addfriend_invalid_pin">Pin baliogabea</string>
+    <string name="addfriend_own_key">Ezin zara zu zeu gehitu</string>
+    <string name="addfriend_friend_pin_title">Sartu lagunaren pina</string>
+    <string name="addfriend_friend_pin_text">Sartu lagunaren pina</string>
+    <string name="addfriend_default_message">Aizu! Mesedez nire lagun izateko eskaera onar ezazu</string>
+
+    <!-- Friend Profile Activity -->
+    <string name="friend_profile_nick">Ezizena</string>
+    <string name="friend_profile_key">Tox IDa</string>
+    <string name="friend_profile_note">Egoera</string>
+    <string name="friend_profile_button">Eguneratu</string>
+    <string name="friend_profile_updated">Profila eguneratu da</string>
+    <string name="friend_profile_copied">Tox IDa kopiatu da</string>
+
+    <!-- Friend request fragment -->
+    <string name="friend_profile_title">%1$sren profila</string>
+    <string name="friendrequest_accept">Onartu</string>
+    <string name="friendrequest_reject">Ukatu</string>
+    <string name="friend_request">Lagun eskaera berria</string>
+
+    <!-- Contacts Fragment -->
+    <string name="friend_action_profile">Profila</string>
+    <string name="friend_action_delete">Laguna kendu</string>
+    <string name="friend_action_delete_chat">Txat erregistroak ezabatu</string>
+    <string name="friend_action_block">Blokeatu</string>
+    <string name="contacts_actions_on">Ekintzak</string>
+    <string name="contacts_delimiter_requests">Eskaerak</string>
+    <string name="contacts_delimiter_friends">Lagunak</string>
+    <string name="contacts_delimiter_offline">Lineaz kanpo</string>
+    <string name="contacts_delimiter_online">Konektatuta</string>
+    <string name="contacts_resend_friend_request">Lagun eskaera birbidali</string>
+
+    <!-- Delete Friend Dialog -->
+    <string name="friend_action_delete_friend_confirmation">Ziur al zaude lagun hau kendu nahi duzulaz?</string>
+
+    <!-- Delete Chat Logs Dialog -->
+    <string name="friend_action_delete_chat_confirmation">Ziur al zaude txat erregistroak ezabatu nahi dituzulaz?</string>
+
+    <!-- Block Friend Dialog -->
+	<string name="friend_action_block_friend_confirmation">Lagun hau blokeatuz zure lagunen zerrendatik kenduko duzu eta ez duzu gehiago bere lagun izateko
+		eskaerarik ikusiko.\n\nZiur al zaude jarraitu nahi duzulaz?</string>
+
+    <!-- Chat Fragment -->
+    <string name="attachment_photo">Argazkia erantsi</string>
+    <string name="attachment_file">Fitxategia erantsi</string>
+    <string name="attachment_takephoto">Argazkia egin</string>
+    <string name="message_copy">Mezua kopiatu</string>
+    <string name="message_delete">Mezua ezabatu</string>
+
+    <!-- Left Pane Fragment -->
+    <string name="titles_recent">Duela gutxikoa</string>
+    <string name="titles_contacts">Kontaktuak</string>
+    <string name="titles_settings">Ezarpenak</string>
+
+    <!-- Misc -->
+    <string name="button_confirm">Baieztatu</string>
+    <string name="button_cancel">Utzi</string>
+    <string name="button_yes">Bai</string>
+    <string name="button_no">Ez</string>
+    <string name="button_ok">Ados</string>
+    <string name="dialog_tox_id">Tox IDa arbelera kopiatu</string>
+    <string name="share_with">Partekatu honekin</string>
+    <string name="connection_has">joan da</string>
+    <string name="connection_online">online</string>
+    <string name="connection_offline">offline</string>
+    <string name="title_activity_create_account">CreateAccountActivity</string>
+    <string name="action_settings">Ezarpenak</string>
+
+    <!-- QR -->
+    <string name="qr_default_title">Barcode Scanner instalatu?</string>
+    <string name="qr_default_message">Aplikazio honek Barcode Scanner behar du. Instalatu nahiko al zenuke?</string>
+    <string name="qr_button_yes">Bai</string>
+    <string name="qr_button_no">Ez</string>
+
+    <!-- nav bar -->
+    <string name="n_settings">EZARPENAK</string>
+    <string name="n_profile_options">PROFILA</string>
+    <string name="n_create_group">TALDEA SORTU</string>
+    <string name="n_add_person">PERTSONA GEHITU</string>
+    <string name="n_about">HONI BURUZ</string>
+    <string name="n_open_source">KODE IREKIKO LIZENTZIA</string>
+    <string name="n_logout">SAIOA ITXI</string>
+
+    <string name="drawer_open">Nabigazio tiradera ireki</string>
+    <string name="drawer_close">Nabigazio tiradera itxi</string>
+
+    <string name="open_source_license">Kode irekiko lizentzia</string>
+
+    <string name="license1">GNU GPL v3 lizentziapean banatuta.</string>
+    <string name="license2">Iturri kodea hemen dago eskuragarri\nhttps://github.com/Astonex/Antox</string>
+
+    <string name="ver">Bertsioa</string>
+    <string name="about">Honi buruz</string>
+	<string name="about_antox_1">Gobernuen monitorizazio programen gorakadarekin, Toxek zure lagun eta familiarekin beste inork entzun gabe harremanetan egotea baimentzen duen eta erabiltzeko erraza den aplikazio bat ematen du.</string>
+    <string name="about_antox_2">Zer funtzionatzen du gaur egun:</string>
+    <string name="about_antox_3">-Oinarrizko mezularitza - honek txat taldeak ez ditu barnean hartzen</string>
+    <string name="about_antox_4">-Fitxategi transferentziak</string>
+    <string name="about_antox_5">Uneko garapena:</string>
+    <string name="about_antox_6">-Unean A/V Antoxen inplementatzen</string>
+
+</resources>
