@@ -1,0 +1,89 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<resources>
+    <string name="title_activity_settings">Ezarpenak</string>
+
+    <!-- Profile -->
+    <string name="pref_header_profile">Profila</string>
+
+    <string name="pref_title_nickname">Izena</string>
+    <string name="pref_default_nickname">Antox erabiltzailea</string>
+
+    <string name="pref_title_status">Egoera</string>
+    <string-array name="pref_status_list_titles">
+        <item>Konektatuta</item>
+        <item>Kanpoan</item>
+        <item>Lanpetuta</item>
+    </string-array>
+    <string-array name="pref_status_list_values" translatable="false">
+        <item>online</item>
+        <item>away</item>
+        <item>busy</item>
+    </string-array>
+
+    <string name="pref_title_status_message">Egoera mezua</string>
+    <string name="pref_default_status_message">Aizu! Antox erabiltzen ari naiz</string>
+    <string name="pref_title_tox_id">Tox IDa</string>
+    <string name="pref_default_tox_id">Tox ID lehenetsia - Ez zenuke hau ikusi behar</string>
+    <string name="pref_title_account_name">Profilaren izena</string>
+    <string name="pref_title_logout">Saioa itxi</string>
+
+    <!-- Notifications -->
+    <string name="pref_header_notifications">Jakinarazpenak</string>
+    <string name="pref_title_enable_notifications">Jakinarazpenak gaitu</string>
+    <string name="pref_title_new_message_notifications">Mezu jakinarazpenak</string>
+    <string name="pref_title_new_friend_notifications">Lagun eskaera jakinarazpenak</string>
+
+    <!-- Other -->
+    <string name="pref_header_other">Besteak</string>
+    <string name="pref_title_connection_status_messages">Online/Offline mezuak</string>
+    <string name="pref_title_wifi_only">Wi-Fi soilik</string>
+    <string name="pref_title_language">Hizkuntza</string>
+    <string-array name="pref_language_list_titles" translatable="false">
+        <item>Български</item>
+        <item>Català</item>
+        <item>čeština</item>
+        <item>English</item>
+        <item>Deutsch</item>
+        <item>Español</item>
+        <item>Français</item>
+        <item>Hrvatski</item>
+        <item>Italiano</item>
+        <item>日本語</item>
+        <item>Nederlands</item>
+        <item>Polski</item>
+        <item>Svenska</item>
+        <item>Türkçe</item>
+        <item>Русский</item>
+        <item>Српски</item>
+        <item>Український</item>
+        <item>Português</item>
+    </string-array>
+    <string-array name="pref_language_list_values" translatable="false">
+        <item>bg</item>
+        <item>ca</item>
+        <item>cs</item>
+        <item>en</item>
+        <item>de</item>
+        <item>es</item>
+        <item>fr</item>
+        <item>hr</item>
+        <item>it</item>
+        <item>ja</item>
+        <item>nl</item>
+        <item>pl</item>
+        <item>sv</item>
+        <item>tr</item>
+        <item>ru</item>
+        <item>sr</item>
+        <item>uk</item>
+        <item>pt</item>
+    </string-array>
+
+    <!-- Menu strings -->
+    <string name="copy_tox_id">Tox IDa kopiatu</string>
+
+    <!-- Advanced strings -->
+    <string name="pref_udp">UDP gaitu</string>
+    <string name="pref_advanced">Aurreratua</string>
+    <string name="pref_nospam">Nospam berria sortu</string>
+</resources>
