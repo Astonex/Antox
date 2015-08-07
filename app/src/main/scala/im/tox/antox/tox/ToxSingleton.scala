@@ -307,7 +307,7 @@ object ToxSingleton {
     dataFile = new ToxDataFile(ctx)
     val preferences = PreferenceManager.getDefaultSharedPreferences(ctx)
     val udpEnabled = preferences.getBoolean("enable_udp", false)
-    val options = new ToxOptions(udpEnabled, Options.ipv6Enabled)
+    val options = new ToxOptions(Options.ipv6Enabled, udpEnabled)
 
     if (!dataFile.doesFileExist()) {
       try {
